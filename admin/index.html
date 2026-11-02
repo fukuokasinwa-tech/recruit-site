@@ -1,0 +1,376 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>求人票作成ツール</title>
+<link rel="stylesheet" href="../assets/style.css">
+<style>
+  body { background: #f1efe9; }
+  .layout { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 20px; padding: 20px 16px 60px; max-width: 1400px; margin: 0 auto; }
+  @media (max-width: 900px) { .layout { grid-template-columns: 1fr; } }
+  .panel { background: #fff; border: 1px solid var(--line); border-radius: 12px; padding: 20px; }
+  .preview-col { position: sticky; top: 12px; align-self: start; max-height: calc(100vh - 24px); overflow: auto; }
+  @media (max-width: 900px) { .preview-col { position: static; max-height: none; } }
+  h1.tool { font-size: 20px; margin: 0 0 4px; }
+  fieldset { border: 0; border-top: 1px solid var(--line); margin: 16px 0 0; padding: 12px 0 0; }
+  legend { font-weight: 700; padding-right: 8px; color: var(--accent); }
+  label { display: block; font-size: 14px; font-weight: 600; margin: 12px 0 4px; }
+  label .req { color: #c0392b; font-size: 12px; margin-left: 4px; }
+  label .hint { font-weight: 400; color: var(--muted); font-size: 12px; margin-left: 6px; }
+  input[type=text], input[type=number], input[type=date], select, textarea {
+    width: 100%; font: inherit; font-size: 15px; padding: 8px 10px; border: 1px solid #cfcac0; border-radius: 8px; background: #fff;
+  }
+  textarea { min-height: 90px; resize: vertical; }
+  .row { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
+  .row2 { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+  @media (max-width: 520px) { .row, .row2 { grid-template-columns: 1fr; } }
+  .chips { display: flex; flex-wrap: wrap; gap: 6px; }
+  .chips label { display: inline-flex; align-items: center; gap: 4px; margin: 0; font-weight: 400; border: 1px solid var(--line); border-radius: 999px; padding: 4px 10px; cursor: pointer; }
+  .actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 20px; }
+  .actions button, .tpl button, .top button { font: inherit; font-size: 14px; padding: 10px 14px; border-radius: 8px; border: 1px solid var(--accent); background: #fff; color: var(--accent); cursor: pointer; font-weight: 600; }
+  .actions button.primary { background: var(--accent); color: #fff; }
+  .tpl { display: flex; flex-wrap: wrap; gap: 6px; }
+  .tpl button { padding: 6px 10px; font-size: 13px; }
+  .top { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-top: 12px; }
+  .note { font-size: 13px; color: var(--muted); background: var(--warm); border-radius: 8px; padding: 10px 12px; margin-top: 12px; }
+  .warn { font-size: 13px; color: #8a2a1b; background: #fdecea; border-radius: 8px; padding: 10px 12px; margin-top: 12px; }
+  .preview-col .sheet { border: 0; padding: 0; margin: 0; }
+  pre#json { white-space: pre-wrap; word-break: break-all; font-size: 12px; background: #f7f7f7; padding: 10px; border-radius: 8px; max-height: 240px; overflow: auto; }
+</style>
+</head>
+<body>
+<div class="layout">
+<section class="panel">
+  <h1 class="tool">求人票作成ツール</h1>
+  <p class="muted" style="margin:0">入力すると右側に求人票がそのまま表示されます。入力内容はこのブラウザに自動保存されます。</p>
+  <div class="top">
+    <button type="button" id="btn-new">新しく作る</button>
+    <label style="margin:0;font-weight:600"><input type="file" id="file-open" accept=".json" hidden><span class="btn" style="padding:8px 14px;font-size:14px;cursor:pointer">保存した求人(JSON)を開く</span></label>
+  </div>
+  <div id="cfg-warn"></div>
+
+  <form id="f" autocomplete="off">
+    <fieldset><legend>基本情報</legend>
+      <label>ひな形から入力<span class="hint">職種を選ぶと仕事内容などの例文が入ります（あとで編集できます）</span></label>
+      <div class="tpl" id="tpl"></div>
+
+      <label for="title">職種名<span class="req">必須</span><span class="hint">例：生活支援員（就労継続支援B型）</span></label>
+      <input type="text" id="title" required>
+      <div class="row2">
+        <div><label for="office">勤務する事業所<span class="req">必須</span></label><select id="office" required></select></div>
+        <div><label for="employmentType">雇用形態<span class="req">必須</span></label>
+          <select id="employmentType"><option>正社員</option><option>契約社員</option><option>パート・アルバイト</option><option>臨時・短期</option><option>業務委託</option></select></div>
+      </div>
+    </fieldset>
+
+    <fieldset><legend>給与</legend>
+      <div class="row">
+        <div><label for="salaryUnit">種類</label><select id="salaryUnit"><option>月給</option><option>時給</option><option>日給</option><option>年収</option></select></div>
+        <div><label for="salaryMin">下限（円）<span class="req">必須</span></label><input type="number" id="salaryMin" min="0" step="1" inputmode="numeric"></div>
+        <div><label for="salaryMax">上限（円）</label><input type="number" id="salaryMax" min="0" step="1" inputmode="numeric"></div>
+      </div>
+      <label for="salaryNote">給与の補足<span class="hint">手当・昇給・賞与など</span></label>
+      <textarea id="salaryNote" rows="2"></textarea>
+    </fieldset>
+
+    <fieldset><legend>仕事・条件</legend>
+      <label for="description">仕事内容<span class="req">必須</span></label>
+      <textarea id="description" rows="6"></textarea>
+      <label for="requirements">応募資格</label>
+      <textarea id="requirements" rows="3"></textarea>
+      <label for="welcome">歓迎条件<span class="hint">あれば尚可の資格・経験</span></label>
+      <textarea id="welcome" rows="2"></textarea>
+      <label for="hours">勤務時間</label>
+      <textarea id="hours" rows="2"></textarea>
+      <label for="holidays">休日・休暇</label>
+      <textarea id="holidays" rows="2"></textarea>
+      <label for="insurance">加入保険</label>
+      <input type="text" id="insurance">
+      <label for="benefits">福利厚生・待遇</label>
+      <textarea id="benefits" rows="3"></textarea>
+      <div class="row2">
+        <div><label for="trial">試用期間</label><input type="text" id="trial"></div>
+        <div><label for="headcount">募集人数</label><input type="number" id="headcount" min="1"></div>
+      </div>
+    </fieldset>
+
+    <fieldset><legend>アピール</legend>
+      <label>特徴タグ<span class="hint">当てはまるものにチェック</span></label>
+      <div class="chips" id="tags"></div>
+      <label for="tagsExtra">その他のタグ<span class="hint">「、」区切り</span></label>
+      <input type="text" id="tagsExtra">
+      <label for="message">職場からのメッセージ</label>
+      <textarea id="message" rows="3"></textarea>
+    </fieldset>
+
+    <fieldset><legend>掲載設定</legend>
+      <div class="row">
+        <div><label for="datePosted">掲載開始日<span class="req">必須</span></label><input type="date" id="datePosted"></div>
+        <div><label for="validThrough">掲載期限<span class="hint">過ぎると自動で非公開</span></label><input type="date" id="validThrough"></div>
+        <div><label for="published">公開状態</label><select id="published"><option value="true">公開する</option><option value="false">下書き（非公開）</option></select></div>
+      </div>
+      <label for="id">求人ID<span class="hint">ファイル名になります。半角英小文字・数字・ハイフン</span></label>
+      <input type="text" id="id" pattern="[a-z0-9-]+">
+    </fieldset>
+
+    <div class="actions">
+      <button type="button" class="primary" id="btn-github">① GitHubに登録して公開する</button>
+      <button type="button" id="btn-copy">JSONをコピー</button>
+      <button type="button" id="btn-download">JSONを保存（バックアップ）</button>
+      <button type="button" id="btn-print">求人票を印刷</button>
+    </div>
+    <div class="note" id="howto">
+      <b>公開の流れ：</b>「① GitHubに登録して公開する」を押す → GitHubの画面が開くので、下の緑色の <b>「Commit changes...」</b> → もう一度 <b>「Commit changes」</b> を押す → 約1〜2分で求人サイトに反映されます。<br>
+      <b>既存の求人を修正するとき：</b>「保存した求人を開く」または GitHub の jobs フォルダからファイルを開き、鉛筆マーク（編集）に「JSONをコピー」した内容を貼り付けて保存します。<br>
+      <b>募集を終了するとき：</b>公開状態を「下書き」にするか、掲載期限を過去の日付にして保存します。
+    </div>
+    <details style="margin-top:12px"><summary class="muted">生成されたJSONを見る</summary><pre id="json"></pre></details>
+  </form>
+</section>
+
+<section class="panel preview-col" id="preview"></section>
+</div>
+
+<script src="../assets/render.js"></script>
+<script>
+(function () {
+  'use strict';
+  var $ = function (id) { return document.getElementById(id); };
+  var config = {}, offices = [];
+  var idManual = false, idSuffix = Math.random().toString(36).slice(2, 6);
+  var FIELDS = ['title','office','employmentType','salaryUnit','salaryMin','salaryMax','salaryNote','description','requirements','welcome','hours','holidays','insurance','benefits','trial','headcount','tagsExtra','message','datePosted','validThrough','published','id'];
+  var TAGS = ['未経験歓迎','資格不問','資格を活かせる','車通勤OK','駐車場あり','扶養内OK','週3日〜','残業ほぼなし','土日休み','日曜休み','主婦・主夫歓迎','ブランクOK','Wワーク可','ミドル・シニア活躍','賞与あり','資格取得支援','見学歓迎','急募'];
+
+  // 職種ごとのひな形（事業所の実情に合わせて書き換えてください）
+  var TEMPLATES = {
+    '生活支援員': {
+      title: '生活支援員', welcome: '介護福祉士、社会福祉士、精神保健福祉士、障がい福祉サービスでの経験',
+      description: '障がいのある利用者さんが安心して通所・作業できるよう、日常生活と作業のサポートをお願いします。\n・作業の見守り、声かけ\n・利用者さんとのコミュニケーション、相談対応\n・送迎（社用車）\n・支援記録の入力（パソコン）',
+      requirements: '普通自動車免許（AT限定可）\n未経験・無資格の方も歓迎します。', tags: ['未経験歓迎','資格不問','車通勤OK','見学歓迎']
+    },
+    '職業指導員': {
+      title: '職業指導員', welcome: '製造・農業・軽作業・接客などの仕事経験、障がい福祉の経験',
+      description: '就労継続支援事業所で、利用者さんへ仕事の手順を教え、一緒に作業しながら「はたらく力」を育てるお仕事です。\n・作業の段取り、手順の指導\n・品質チェック、納品管理\n・取引先とのやりとり\n・支援記録の入力',
+      requirements: '普通自動車免許（AT限定可）\n資格は不要です。社会人経験を活かせます。', tags: ['資格不問','未経験歓迎','車通勤OK']
+    },
+    'サービス管理責任者': {
+      title: 'サービス管理責任者', welcome: '障がい福祉サービスでのサービス管理責任者の実務経験',
+      description: '就労継続支援事業所のサービス管理責任者として、支援の質の中心を担っていただきます。\n・個別支援計画の作成、モニタリング\n・利用者さん・ご家族・関係機関との調整\n・スタッフへの助言、支援会議の運営\n・実地指導などへの対応',
+      requirements: 'サービス管理責任者研修（基礎・実践）修了者\n※要件を満たす実務経験のある方は研修受講を支援します\n普通自動車免許', tags: ['資格を活かせる','車通勤OK']
+    },
+    '相談支援専門員': {
+      title: '相談支援専門員', welcome: '社会福祉士、精神保健福祉士、介護支援専門員、相談業務の経験',
+      description: '障がいのある方やご家族の相談に応じ、福祉サービスの利用計画を作成するお仕事です。\n・サービス等利用計画の作成、モニタリング\n・自宅、学校、事業所などへの訪問\n・市町村、関係機関との連絡調整\n・担当者会議の開催',
+      requirements: '相談支援従事者初任者研修 修了者\n普通自動車免許（訪問で使用）', tags: ['資格を活かせる','車通勤OK','土日休み']
+    },
+    '児童指導員': {
+      title: '児童指導員', welcome: '子どもと関わる仕事の経験、子育て経験',
+      description: '放課後等デイサービスで、小学生〜高校生のお子さまの療育と活動をサポートします。\n・宿題の見守り、遊びや創作活動、運動プログラム\n・個別支援計画に沿った療育\n・学校、ご自宅への送迎（社用車）\n・保護者への様子の報告、記録の入力',
+      requirements: '児童指導員任用資格（社会福祉・心理・教育などの学部卒、教員免許 など）\n普通自動車免許（AT限定可）', tags: ['資格を活かせる','見学歓迎','車通勤OK']
+    },
+    '保育士': {
+      title: '保育士', welcome: '保育園、学童保育、放課後等デイサービスでの経験',
+      description: '放課後等デイサービスで、保育士の経験を活かして子どもたちの成長を支えるお仕事です。\n・遊び、集団活動、創作活動の企画・実施\n・個別支援計画に沿った療育\n・送迎（社用車）\n・保護者対応、記録',
+      requirements: '保育士資格\n普通自動車免許（AT限定可）', tags: ['資格を活かせる','ブランクOK','見学歓迎']
+    },
+    '児童発達支援管理責任者': {
+      title: '児童発達支援管理責任者', welcome: '児童発達支援管理責任者としての実務経験',
+      description: '放課後等デイサービスの児童発達支援管理責任者として、療育の質の中心を担っていただきます。\n・個別支援計画の作成、モニタリング\n・保護者面談、学校・関係機関との連携\n・スタッフへの助言、支援会議の運営',
+      requirements: '児童発達支援管理責任者研修（基礎・実践）修了者\n普通自動車免許', tags: ['資格を活かせる','車通勤OK']
+    },
+    'ドライバー（送迎）': {
+      title: '送迎ドライバー', employmentType: 'パート・アルバイト', salaryUnit: '時給', welcome: '送迎・運転のお仕事の経験',
+      description: '利用者さん・お子さまの送迎をお願いします（社用車：軽自動車〜ワゴン車）。\n・決められたルートでの送迎\n・乗り降りの見守り、声かけ\n・車両の簡単な清掃・点検',
+      requirements: '普通自動車免許（AT限定可）', tags: ['資格不問','ミドル・シニア活躍','Wワーク可','扶養内OK']
+    }
+  };
+  var COMMON = {
+    '正社員': { insurance: '雇用保険・労災保険・健康保険・厚生年金', trial: '試用期間3ヶ月（条件同じ）', hours: '8:30〜17:30（休憩60分）', holidays: '日曜・祝日 他／年間休日○○日／夏季・年末年始休暇／有給休暇', benefits: '交通費支給（上限あり）、昇給あり、賞与あり、処遇改善手当、資格取得支援、マイカー通勤可' },
+    'パート・アルバイト': { insurance: '労働条件により加入（雇用・労災・社会保険）', trial: '試用期間2ヶ月', hours: '○:○○〜○:○○の間で1日4時間〜、週3日〜OK（応相談）', holidays: 'シフト制（希望休OK）', benefits: '交通費支給、扶養内勤務OK、処遇改善手当、マイカー通勤可' }
+  };
+
+  // ---- 初期化 ----
+  TAGS.forEach(function (t) {
+    var l = document.createElement('label');
+    l.innerHTML = '<input type="checkbox" value="' + JobRender.esc(t) + '"> ' + JobRender.esc(t);
+    $('tags').appendChild(l);
+  });
+  Object.keys(TEMPLATES).forEach(function (k) {
+    var b = document.createElement('button'); b.type = 'button'; b.textContent = k;
+    b.onclick = function () { applyTemplate(k); };
+    $('tpl').appendChild(b);
+  });
+
+  Promise.all([fetch('../data/config.json').then(function (r) { return r.json(); }), fetch('../data/offices.json').then(function (r) { return r.json(); })])
+    .then(function (res) { config = res[0]; offices = res[1]; start(); })
+    .catch(function () {
+      $('cfg-warn').innerHTML = '<div class="warn">設定ファイルを読み込めませんでした。このページは公開した求人サイトの <b>/admin/</b> で開くか、パソコンで <code>node preview.js</code> を実行して開いてください。</div>';
+    });
+
+  function start() {
+    if (/YOUR-GITHUB-ID/.test(JSON.stringify(config.github || {})))
+      $('cfg-warn').innerHTML = '<div class="warn">data/config.json の「YOUR-GITHUB-ID」がまだ書き換えられていません。GitHubのユーザー名に変更してください。</div>';
+    $('office').innerHTML = offices.map(function (o) {
+      return '<option value="' + JobRender.esc(o.id) + '">' + JobRender.esc(o.city + '｜' + o.service + '｜' + o.name) + '</option>';
+    }).join('');
+    var saved = null;
+    try { saved = JSON.parse(localStorage.getItem('job-draft') || 'null'); } catch (e) {}
+    if (saved) { load(saved); try { idManual = !!localStorage.getItem('job-draft-idmanual'); } catch (e) {} } else reset();
+    $('f').addEventListener('input', update);
+    $('f').addEventListener('change', update);
+  }
+
+  function todayStr(addDays) {
+    var d = new Date(Date.now() + 9 * 3600e3 + (addDays || 0) * 86400e3);
+    return d.toISOString().slice(0, 10);
+  }
+  function reset() {
+    $('f').reset();
+    FIELDS.forEach(function (k) { if ($(k).tagName !== 'SELECT') $(k).value = ''; });
+    $('datePosted').value = todayStr();
+    $('validThrough').value = todayStr(90);
+    $('published').value = 'true';
+    idManual = false; idSuffix = Math.random().toString(36).slice(2, 6);
+    [].forEach.call($('tags').querySelectorAll('input'), function (c) { c.checked = false; });
+    applyCommon();
+    update();
+  }
+  function applyCommon() {
+    var c = COMMON[$('employmentType').value] || COMMON['正社員'];
+    Object.keys(c).forEach(function (k) { if (!$(k).value) $(k).value = c[k]; });
+  }
+  function applyTemplate(name) {
+    var t = TEMPLATES[name];
+    var filled = ['description', 'requirements'].some(function (k) { return $(k).value.trim(); });
+    if (filled && !confirm('仕事内容・応募資格などを「' + name + '」の例文で置き換えます。よろしいですか？')) return;
+    if (t.employmentType) $('employmentType').value = t.employmentType;
+    if (t.salaryUnit) $('salaryUnit').value = t.salaryUnit;
+    var svc = (offices.filter(function (o) { return o.id === $('office').value; })[0] || {}).service;
+    $('title').value = t.title + (svc && !t.employmentType ? '（' + svc + '）' : '');
+    ['description', 'requirements', 'welcome'].forEach(function (k) { $(k).value = t[k] || ''; });
+    [].forEach.call($('tags').querySelectorAll('input'), function (c) { c.checked = (t.tags || []).indexOf(c.value) >= 0; });
+    var c = COMMON[$('employmentType').value] || COMMON['正社員'];
+    Object.keys(c).forEach(function (k) { $(k).value = c[k]; });
+    update();
+  }
+
+  function collect() {
+    var tags = [].filter.call($('tags').querySelectorAll('input'), function (c) { return c.checked; }).map(function (c) { return c.value; });
+    $('tagsExtra').value.split(/[、,，]/).map(function (s) { return s.trim(); }).filter(Boolean).forEach(function (t) { if (tags.indexOf(t) < 0) tags.push(t); });
+    var id = $('id').value.trim();
+    if (!idManual) {
+      id = ($('office').value || 'job') + '-' + ($('datePosted').value || todayStr()).replace(/-/g, '') + '-' + idSuffix;
+      $('id').value = id;
+    }
+    var job = {
+      id: id,
+      published: $('published').value === 'true',
+      title: $('title').value.trim(),
+      office: $('office').value,
+      employmentType: $('employmentType').value,
+      salary: { unit: $('salaryUnit').value, min: Number($('salaryMin').value) || 0, max: Number($('salaryMax').value) || 0 },
+      salaryNote: $('salaryNote').value.trim(),
+      hours: $('hours').value.trim(),
+      holidays: $('holidays').value.trim(),
+      description: $('description').value.trim(),
+      requirements: $('requirements').value.trim(),
+      welcome: $('welcome').value.trim(),
+      insurance: $('insurance').value.trim(),
+      benefits: $('benefits').value.trim(),
+      trial: $('trial').value.trim(),
+      headcount: Number($('headcount').value) || 0,
+      tags: tags,
+      message: $('message').value.trim(),
+      datePosted: $('datePosted').value,
+      validThrough: $('validThrough').value,
+      updated: todayStr()
+    };
+    return job;
+  }
+  function load(job) {
+    reset();
+    var s = job.salary || {};
+    var map = { salaryUnit: s.unit || '月給', salaryMin: s.min || '', salaryMax: s.max || '', published: String(job.published !== false) };
+    FIELDS.forEach(function (k) {
+      var val = k in map ? map[k] : job[k];
+      if (k === 'tagsExtra') return;
+      if (val !== undefined && val !== null) $(k).value = val;
+    });
+    var extra = [];
+    (job.tags || []).forEach(function (t) {
+      var c = $('tags').querySelector('input[value="' + t.replace(/"/g, '') + '"]');
+      if (c) c.checked = true; else extra.push(t);
+    });
+    $('tagsExtra').value = extra.join('、');
+    idManual = !!job.id;
+    update();
+  }
+
+  function validate(job) {
+    var e = [];
+    if (!job.title) e.push('職種名');
+    if (!job.office) e.push('事業所');
+    if (!job.salary.min) e.push('給与の下限');
+    if (!job.description) e.push('仕事内容');
+    if (!job.datePosted) e.push('掲載開始日');
+    if (!/^[a-z0-9-]+$/.test(job.id)) e.push('求人ID（半角英小文字・数字・ハイフンのみ）');
+    if (job.salary.max && job.salary.max < job.salary.min) e.push('給与の上限が下限より小さくなっています');
+    return e;
+  }
+
+  function update() {
+    var job = collect();
+    var office = offices.filter(function (o) { return o.id === job.office; })[0];
+    try { localStorage.setItem('job-draft', JSON.stringify(job)); localStorage.setItem('job-draft-idmanual', idManual ? '1' : ''); } catch (e) {}
+    $('json').textContent = JSON.stringify(job, null, 2);
+    $('preview').innerHTML = office ? JobRender.jobSheetHtml(job, office, config) : '';
+  }
+
+  function jsonText() { return JSON.stringify(collect(), null, 2) + '\n'; }
+  function check() {
+    var job = collect(), e = validate(job);
+    if (e.length) { alert('次の項目を入力・確認してください：\n・' + e.join('\n・')); return null; }
+    return job;
+  }
+
+  $('employmentType').addEventListener('change', function () { applyCommon(); });
+  $('id').addEventListener('input', function () { idManual = !!$('id').value.trim(); });
+  $('btn-new').onclick = function () {
+    if (confirm('入力中の内容を消して新しい求人票を作りますか？')) { try { localStorage.removeItem('job-draft'); } catch (e) {} reset(); }
+  };
+  $('file-open').onchange = function (ev) {
+    var f = ev.target.files[0]; if (!f) return;
+    f.text().then(function (t) { load(JSON.parse(t)); }).catch(function () { alert('ファイルを読み込めませんでした'); });
+    ev.target.value = '';
+  };
+  $('btn-github').onclick = function () {
+    var job = check(); if (!job) return;
+    var g = config.github || {};
+    if (!g.owner || /YOUR-GITHUB-ID/.test(g.owner)) { alert('data/config.json の github.owner（GitHubユーザー名）を設定してください'); return; }
+    var url = 'https://github.com/' + encodeURIComponent(g.owner) + '/' + encodeURIComponent(g.repo) + '/new/' + encodeURIComponent(g.branch || 'main') +
+      '?filename=' + encodeURIComponent('jobs/' + job.id + '.json') + '&value=' + encodeURIComponent(jsonText());
+    alert('GitHubの画面を開きます。\n\n※同じIDの求人がすでにある場合は「既に存在します」と表示されます。その場合は「JSONをコピー」して、GitHubの jobs/' + job.id + '.json を開き、鉛筆マーク（編集）から全部貼り替えてください。');
+    window.open(url, '_blank', 'noopener');
+  };
+  $('btn-copy').onclick = function () {
+    if (!check()) return;
+    navigator.clipboard.writeText(jsonText()).then(function () { alert('コピーしました'); }, function () { alert('コピーできませんでした。「生成されたJSONを見る」から手動でコピーしてください。'); });
+  };
+  $('btn-download').onclick = function () {
+    var job = check(); if (!job) return;
+    var a = document.createElement('a');
+    a.href = URL.createObjectURL(new Blob([jsonText()], { type: 'application/json' }));
+    a.download = job.id + '.json'; a.click();
+    setTimeout(function () { URL.revokeObjectURL(a.href); }, 1000);
+  };
+  $('btn-print').onclick = function () {
+    var w = window.open('', '_blank');
+    w.document.write('<!doctype html><html lang="ja"><head><meta charset="utf-8"><title>求人票</title><link rel="stylesheet" href="' + new URL('../assets/style.css', location.href) + '"></head><body><main class="wrap">' + $('preview').innerHTML + '</main><script>setTimeout(function(){print()},400)<\/script></body></html>');
+    w.document.close();
+  };
+})();
+</script>
+</body>
+</html>

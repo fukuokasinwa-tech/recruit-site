@@ -1,0 +1,100 @@
+:root {
+  --bg: #fbfaf7;
+  --card: #ffffff;
+  --ink: #2b2a27;
+  --muted: #6b6860;
+  --line: #e6e2d9;
+  --accent: #2f7d5b;
+  --accent-ink: #ffffff;
+  --accent-soft: #e7f3ec;
+  --warm: #f6efe2;
+  --svc: #2f6f9e;
+  --city: #8a5a2b;
+  --emp: #7a4e9a;
+}
+* { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body {
+  margin: 0; background: var(--bg); color: var(--ink);
+  font-family: "Hiragino Kaku Gothic ProN", "Hiragino Sans", "Noto Sans JP", Meiryo, sans-serif;
+  line-height: 1.75; font-size: 16px;
+}
+a { color: var(--accent); }
+.wrap { max-width: 960px; margin: 0 auto; padding: 0 16px; }
+.site-head { background: var(--card); border-bottom: 1px solid var(--line); }
+.site-head .wrap { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding-top: 12px; padding-bottom: 12px; }
+.site-head a.brand { color: var(--ink); text-decoration: none; font-weight: 700; font-size: 18px; display: flex; align-items: center; gap: 8px; }
+.site-head img { height: 36px; }
+.site-head .tel { font-size: 14px; color: var(--muted); text-align: right; }
+.hero { background: var(--warm); padding: 40px 0 32px; }
+.hero h1 { margin: 0 0 8px; font-size: clamp(22px, 5vw, 32px); line-height: 1.4; }
+.hero p { margin: 0; color: var(--muted); }
+
+.filters { display: flex; flex-wrap: wrap; gap: 8px; margin: 24px 0 8px; }
+.filters select { font: inherit; padding: 8px 10px; border: 1px solid var(--line); border-radius: 8px; background: var(--card); min-width: 0; flex: 1 1 180px; }
+.count { color: var(--muted); font-size: 14px; margin: 8px 0 16px; }
+
+.cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 16px; margin-bottom: 48px; }
+.card { background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 18px; text-decoration: none; color: var(--ink); display: flex; flex-direction: column; gap: 6px; transition: box-shadow .15s, transform .15s; }
+.card:hover { box-shadow: 0 6px 18px rgba(0,0,0,.08); transform: translateY(-2px); }
+.card h2 { font-size: 18px; margin: 4px 0 0; line-height: 1.45; }
+.card .salary { font-weight: 700; color: var(--accent); }
+.card .meta { font-size: 14px; color: var(--muted); }
+.empty { padding: 40px; text-align: center; color: var(--muted); background: var(--card); border: 1px dashed var(--line); border-radius: 12px; }
+
+.badges { display: flex; flex-wrap: wrap; gap: 6px; }
+.badge { font-size: 12px; padding: 2px 8px; border-radius: 999px; color: #fff; font-weight: 600; }
+.badge.svc { background: var(--svc); } .badge.city { background: var(--city); } .badge.emp { background: var(--emp); }
+.tags { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+.tag { font-size: 12px; padding: 2px 8px; border-radius: 6px; background: var(--accent-soft); color: var(--accent); }
+
+.crumb { font-size: 14px; margin: 16px 0; }
+.sheet { background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 24px; margin-bottom: 40px; }
+.sheet-head h1 { font-size: clamp(22px, 5vw, 28px); margin: 10px 0 4px; line-height: 1.4; }
+.sheet-head .salary { font-size: 20px; font-weight: 700; color: var(--accent); margin: 0; }
+.message { background: var(--warm); border-radius: 8px; padding: 12px 16px; margin: 20px 0; }
+.sheet-table { width: 100%; border-collapse: collapse; margin: 20px 0; }
+.sheet-table th, .sheet-table td { border-top: 1px solid var(--line); padding: 12px 8px; vertical-align: top; text-align: left; }
+.sheet-table th { width: 8.5em; color: var(--muted); font-weight: 600; white-space: nowrap; }
+.muted { color: var(--muted); font-size: 14px; }
+.apply { background: var(--accent-soft); border-radius: 12px; padding: 20px; margin-top: 24px; }
+.apply h2 { margin: 0 0 4px; font-size: 20px; }
+.apply p { margin: 0 0 12px; }
+.btns { display: flex; flex-wrap: wrap; gap: 10px; }
+.btn { flex: 1 1 200px; text-align: center; display: inline-block; padding: 12px 16px; border-radius: 10px; border: 2px solid var(--accent); background: var(--card); color: var(--accent); font-weight: 700; text-decoration: none; line-height: 1.4; }
+.btn.primary { background: var(--accent); color: var(--accent-ink); }
+.btn small { font-weight: 400; font-size: 12px; }
+.org { font-size: 13px; color: var(--muted); margin-top: 20px; }
+.tools { display: flex; gap: 8px; justify-content: flex-end; margin: -24px 0 40px; }
+.tools button { font: inherit; font-size: 14px; padding: 6px 12px; border: 1px solid var(--line); background: var(--card); border-radius: 8px; cursor: pointer; }
+.print-only { display: none; }
+.site-foot { border-top: 1px solid var(--line); padding: 24px 0 40px; font-size: 13px; color: var(--muted); }
+
+@media (max-width: 600px) {
+  .sheet { padding: 16px; }
+  .sheet-table th, .sheet-table td { display: block; width: auto; }
+  .sheet-table th { border-top: 1px solid var(--line); padding-bottom: 0; }
+  .sheet-table td { border-top: 0; padding-top: 4px; }
+  .site-head .tel { display: none; }
+}
+
+/* 印刷（A4 求人票として紙で掲示・配布できるように） */
+@media print {
+  @page { size: A4; margin: 10mm 12mm; }
+  body { background: #fff; font-size: 10pt; line-height: 1.45; }
+  .sheet-head h1 { font-size: 18pt; margin: 6px 0 2px; }
+  .sheet-head .salary { font-size: 13pt; }
+  .message { margin: 8px 0; padding: 6px 10px; }
+  .sheet-table { margin: 8px 0; }
+  .apply, .sheet-table tr { break-inside: avoid; }
+  .apply h2 { font-size: 12pt; }
+  .apply p { margin: 0; }
+  .org { margin-top: 6px; }
+  .site-head, .site-foot, .crumb, .tools, .no-print { display: none !important; }
+  .print-only { display: block; }
+  .sheet { border: 0; padding: 0; margin: 0; }
+  .sheet-table th, .sheet-table td { padding: 3px 6px; border: 1px solid #999; }
+  .badge { color: #000; border: 1px solid #000; background: none !important; }
+  .apply { background: none; border: 1px solid #000; padding: 8px 12px; }
+  .message { background: none; border: 1px solid #ccc; }
+}

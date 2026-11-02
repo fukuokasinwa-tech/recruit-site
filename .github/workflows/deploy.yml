@@ -1,0 +1,42 @@
+# 求人データ（jobs/*.json など）を保存すると、自動でサイトを作り直して公開します。
+# 毎朝6時（日本時間）にも再生成し、掲載期限切れの求人を自動で非公開にします。
+name: 求人サイトを公開
+
+on:
+  push:
+    branches: [main]
+  schedule:
+    - cron: '0 21 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - id: pages
+        uses: actions/configure-pages@v5
+      - name: サイトを生成
+        run: node build.js
+        env:
+          SITE_URL: ${{ steps.pages.outputs.base_url }}
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: dist
+      - id: deployment
+        uses: actions/deploy-pages@v4

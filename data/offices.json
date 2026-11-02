@@ -1,0 +1,72 @@
+[
+  {
+    "id": "yame-a",
+    "name": "（事業所名）八女",
+    "service": "就労継続支援A型",
+    "postalCode": "834-0000",
+    "city": "八女市",
+    "address": "吉田（番地を入力）",
+    "access": "車通勤可・駐車場あり",
+    "phone": ""
+  },
+  {
+    "id": "yame-b",
+    "name": "（事業所名）八女",
+    "service": "就労継続支援B型",
+    "postalCode": "834-0000",
+    "city": "八女市",
+    "address": "吉田（番地を入力）",
+    "access": "車通勤可・駐車場あり",
+    "phone": ""
+  },
+  {
+    "id": "yame-soudan",
+    "name": "（事業所名）相談支援センター",
+    "service": "相談支援",
+    "postalCode": "834-0000",
+    "city": "八女市",
+    "address": "吉田（番地を入力）",
+    "access": "車通勤可・駐車場あり",
+    "phone": ""
+  },
+  {
+    "id": "kurume-b",
+    "name": "（事業所名）久留米",
+    "service": "就労継続支援B型",
+    "postalCode": "830-0000",
+    "city": "久留米市",
+    "address": "（町名・番地を入力）",
+    "access": "",
+    "phone": ""
+  },
+  {
+    "id": "yanagawa-day",
+    "name": "（事業所名）柳川",
+    "service": "放課後等デイサービス",
+    "postalCode": "832-0000",
+    "city": "柳川市",
+    "address": "（町名・番地を入力）",
+    "access": "",
+    "phone": ""
+  },
+  {
+    "id": "chikugo-day",
+    "name": "（事業所名）筑後",
+    "service": "放課後等デイサービス",
+    "postalCode": "833-0000",
+    "city": "筑後市",
+    "address": "（町名・番地を入力）",
+    "access": "",
+    "phone": ""
+  },
+  {
+    "id": "omuta-a",
+    "name": "（事業所名）大牟田",
+    "service": "就労継続支援A型",
+    "postalCode": "836-0000",
+    "city": "大牟田市",
+    "address": "（町名・番地を入力）",
+    "access": "",
+    "phone": ""
+  }
+]

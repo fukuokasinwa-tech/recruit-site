@@ -1,0 +1,14 @@
+{
+  "orgName": "（法人名をここに入力）",
+  "siteName": "（法人名）採用情報",
+  "catchcopy": "八女・久留米・柳川・筑後・大牟田で、障がいのある方とこどもたちの「はたらく」「育つ」を支える仲間を募集しています。",
+  "siteUrl": "https://YOUR-GITHUB-ID.github.io/recruit-site",
+  "logo": "",
+  "hqPostalCode": "834-0000",
+  "hqAddress": "福岡県八女市吉田（番地を入力）",
+  "phone": "0943-00-0000",
+  "phoneHours": "平日 9:00〜17:00",
+  "email": "recruit@example.com",
+  "applyFormUrl": "",
+  "github": { "owner": "YOUR-GITHUB-ID", "repo": "recruit-site", "branch": "main" }
+}
