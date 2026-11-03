@@ -134,7 +134,7 @@
       (job.message ? '<p class="message">' + nl2br(job.message) + '</p>' : '') +
       '<table class="sheet-table">' + rows + '</table>' +
       applyHtml(job, office, config) +
-      '<p class="org">' + esc(config.orgName) + '　〒' + esc(config.hqPostalCode) + ' ' + esc(config.hqAddress) + '</p>' +
+      '<p class="org">' + esc(config.orgName) + (config.hqAddress ? '　' + (config.hqPostalCode ? '〒' + esc(config.hqPostalCode) + ' ' : '') + esc(config.hqAddress) : '') + '</p>' +
       '</article>';
   }
 

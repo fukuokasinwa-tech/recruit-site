@@ -88,7 +88,7 @@ ${head}
 </div></header>
 ${body}
 <footer class="site-foot"><div class="wrap">
-  ${esc(config.orgName)}　〒${esc(config.hqPostalCode)} ${esc(config.hqAddress)}　TEL ${esc(config.phone)}
+  ${esc(config.orgName)}${config.hqAddress ? '　' + (config.hqPostalCode ? '〒' + esc(config.hqPostalCode) + ' ' : '') + esc(config.hqAddress) : ''}　TEL ${esc(config.phone)}
 </div></footer>
 </body>
 </html>`;
@@ -139,7 +139,7 @@ const indexHtml = layout({
   title: `${config.siteName}｜八女市・久留米市・柳川市・筑後市・大牟田市の福祉の求人`,
   description: config.catchcopy,
   canonical: config.siteUrl + '/',
-  head: `<script type="application/ld+json">${JSON.stringify({ '@context': 'https://schema.org', '@type': 'Organization', name: config.orgName, url: config.siteUrl, telephone: config.phone, address: { '@type': 'PostalAddress', addressRegion: '福岡県', streetAddress: config.hqAddress, postalCode: config.hqPostalCode, addressCountry: 'JP' } })}</script>`,
+  head: `<script type="application/ld+json">${JSON.stringify({ '@context': 'https://schema.org', '@type': 'Organization', name: config.orgName, url: config.siteUrl, telephone: config.phone, address: { '@type': 'PostalAddress', addressRegion: '福岡県', streetAddress: config.hqAddress || undefined, postalCode: config.hqPostalCode || undefined, addressCountry: 'JP' } })}</script>`,
   body: `<section class="hero"><div class="wrap">
   <h1>一緒に働く仲間を募集しています</h1>
   <p>${esc(config.catchcopy)}</p>
