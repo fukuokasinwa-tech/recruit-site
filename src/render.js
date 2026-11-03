@@ -145,8 +145,8 @@
     if (config.applyFormUrl) btns.push('<a class="btn primary" href="' + esc(config.applyFormUrl) + '" target="_blank" rel="noopener">応募フォームから応募</a>');
     if (config.phone) btns.push('<a class="btn" href="tel:' + esc(String(config.phone).replace(/[^0-9+]/g, '')) + '">電話で応募・問い合わせ<br><small>' + esc(config.phone) + (config.phoneHours ? '（' + esc(config.phoneHours) + '）' : '') + '</small></a>');
     if (config.email) btns.push('<a class="btn" href="mailto:' + esc(config.email) + '?subject=' + encodeURIComponent(subject) + '&amp;body=' + encodeURIComponent(body) + '">メールで応募</a>');
-    return '<section class="apply no-print"><h2>応募・見学のお申し込み</h2><p>「求人サイトを見た」とお伝えください。見学だけでも歓迎です。</p><div class="btns">' + btns.join('') + '</div></section>' +
-      '<section class="apply print-only"><h2>応募・お問い合わせ</h2><p>TEL ' + esc(config.phone) + (config.phoneHours ? '（' + esc(config.phoneHours) + '）' : '') + (config.email ? '　/　' + esc(config.email) : '') + '</p></section>';
+    return '<section class="apply no-print"><h2>応募・見学のお申し込み</h2><p>' + (config.contactName ? '採用担当：' + esc(config.contactName) + '　' : '') + '「求人サイトを見た」とお伝えください。見学だけでも歓迎です。</p><div class="btns">' + btns.join('') + '</div></section>' +
+      '<section class="apply print-only"><h2>応募・お問い合わせ</h2><p>' + (config.contactName ? '採用担当：' + esc(config.contactName) + '　' : '') + 'TEL ' + esc(config.phone) + (config.phoneHours ? '（' + esc(config.phoneHours) + '）' : '') + (config.email ? '　/　' + esc(config.email) : '') + '</p></section>';
   }
 
   var api = {

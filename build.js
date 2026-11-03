@@ -84,7 +84,7 @@ ${head}
 <body>
 <header class="site-head"><div class="wrap">
   <a class="brand" href="${up}">${config.logo ? `<img src="${up}${esc(config.logo)}" alt="">` : ''}${esc(config.siteName)}</a>
-  <div class="tel">採用担当 ${esc(config.phone)}<br>${esc(config.phoneHours || '')}</div>
+  <div class="tel">採用担当${config.contactName ? '（' + esc(config.contactName) + '）' : ''} ${esc(config.phone)}<br>${esc(config.phoneHours || '')}</div>
 </div></header>
 ${body}
 <footer class="site-foot"><div class="wrap">
