@@ -66,6 +66,8 @@
       identifier: { '@type': 'PropertyValue', name: config.orgName, value: job.id },
       directApply: true
     };
+    var ll = String(office.map || '').match(/^\s*(-?\d+(?:\.\d+)?)\s*,\s*(-?\d+(?:\.\d+)?)\s*$/);
+    if (ll) data.jobLocation.geo = { '@type': 'GeoCoordinates', latitude: Number(ll[1]), longitude: Number(ll[2]) };
     if (config.logo) data.hiringOrganization.logo = absUrl(config, config.logo);
     if (job.validThrough) data.validThrough = job.validThrough + 'T23:59:59+09:00';
     if (s.min || s.max) {
@@ -132,6 +134,25 @@
     }).join('') + '</div>';
   }
 
+  // 地図（Googleマップ・APIキー不要の無料埋め込み）
+  // office.map に「住所」「緯度,経度」「建物名」のいずれかを入れると、その場所を表示。空なら住所で表示。
+  function mapQuery(office) {
+    var m = String(office.map || '').trim();
+    return m || fullAddress(office);
+  }
+  function mapLinkUrl(office) {
+    return 'https://www.google.com/maps/search/?api=1&query=' + encodeURIComponent(mapQuery(office));
+  }
+  function mapHtml(office) {
+    var q = mapQuery(office);
+    if (!q || q === '福岡県') return '';
+    var src = 'https://maps.google.com/maps?q=' + encodeURIComponent(q) + '&z=17&hl=ja&output=embed';
+    return '<section class="map no-print"><h2>勤務地の地図</h2>' +
+      '<p class="muted">' + esc(office.name) + '　〒' + esc(office.postalCode) + ' ' + esc(fullAddress(office)) + '</p>' +
+      '<div class="map-frame"><iframe src="' + esc(src) + '" title="' + esc(office.name) + 'の地図" loading="lazy" referrerpolicy="no-referrer-when-downgrade" allowfullscreen></iframe></div>' +
+      '<p><a class="btn" href="' + esc(mapLinkUrl(office)) + '" target="_blank" rel="noopener">Googleマップで開く（道案内）</a></p></section>';
+  }
+
   // 求人票本体（表形式）
   function jobSheetHtml(job, office, config, base) {
     var rows = ROWS.map(function (r) {
@@ -152,6 +173,7 @@
       galleryHtml(job, office, base) +
       (job.message ? '<p class="message">' + nl2br(job.message) + '</p>' : '') +
       '<table class="sheet-table">' + rows + '</table>' +
+      mapHtml(office) +
       applyHtml(job, office, config) +
       '<p class="org">' + esc(config.orgName) + (config.hqAddress ? '　' + (config.hqPostalCode ? '〒' + esc(config.hqPostalCode) + ' ' : '') + esc(config.hqAddress) : '') + '</p>' +
       '</article>';
@@ -169,7 +191,7 @@
   }
 
   var api = {
-    esc: esc, nl2br: nl2br, salaryText: salaryText, fullAddress: fullAddress, isExpired: isExpired,
+    esc: esc, nl2br: nl2br, salaryText: salaryText, fullAddress: fullAddress, isExpired: isExpired, mapHtml: mapHtml, mapQuery: mapQuery,
     jobPostingJsonLd: jobPostingJsonLd, jobSheetHtml: jobSheetHtml, photosOf: photosOf, photoSrc: photoSrc, absUrl: absUrl,
     EMPLOYMENT_TYPES: EMPLOYMENT_TYPES, SALARY_UNITS: SALARY_UNITS
   };

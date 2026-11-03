@@ -128,6 +128,40 @@
     </div>
     <details style="margin-top:12px"><summary class="muted">生成されたJSONを見る</summary><pre id="json"></pre></details>
   </form>
+
+  <form id="of" autocomplete="off" onsubmit="return false">
+    <fieldset><legend>事業所の情報・地図の位置を直す</legend>
+      <p class="muted" style="margin:4px 0 0">求人ページに表示される勤務地・地図の場所を修正できます。修正した内容は、その事業所の求人すべてに反映されます。</p>
+      <label for="of-office">直したい事業所</label>
+      <select id="of-office"></select>
+      <div class="row2">
+        <div><label for="of-name">事業所名</label><input type="text" id="of-name"></div>
+        <div><label for="of-service">事業の種類</label>
+          <select id="of-service"><option>就労継続支援A型</option><option>就労継続支援B型</option><option>相談支援</option><option>放課後等デイサービス</option><option>児童発達支援</option><option>その他</option></select></div>
+      </div>
+      <div class="row">
+        <div><label for="of-postal">郵便番号</label><input type="text" id="of-postal" placeholder="834-0031"></div>
+        <div><label for="of-city">市</label>
+          <select id="of-city"><option>八女市</option><option>久留米市</option><option>柳川市</option><option>筑後市</option><option>大牟田市</option><option>みやま市</option><option>広川町</option></select></div>
+        <div><label for="of-address">町名・番地</label><input type="text" id="of-address" placeholder="本町2-475"></div>
+      </div>
+      <label for="of-access">アクセス・駐車場</label>
+      <input type="text" id="of-access" placeholder="マイカー通勤可・駐車場あり">
+      <label for="of-map">地図の位置<span class="hint">住所で場所がずれる時だけ入力（空欄なら上の住所で表示）</span></label>
+      <input type="text" id="of-map" placeholder="例：33.2117, 130.5578 ／ GoogleマップのURL ／ 建物名">
+      <div class="note" style="margin-top:8px">
+        <b>地図の場所がずれている時：</b>パソコンで <a href="https://www.google.com/maps" target="_blank" rel="noopener">Googleマップ</a> を開き、正しい建物の上で<b>右クリック</b> → 一番上の数字（例：33.2117, 130.5578）をクリックするとコピーされます。それを上の「地図の位置」に貼り付けてください。<br>
+        スマホの場合は、正しい場所を<b>長押し</b>して赤いピンを立て、上に出る数字をコピーして貼り付けます。
+      </div>
+      <div class="map-frame" style="margin-top:12px"><iframe id="of-preview" title="地図の確認" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe></div>
+      <p class="muted" id="of-q" style="margin:0"></p>
+      <div class="actions">
+        <button type="button" class="primary" id="of-github">② GitHubに保存して反映する</button>
+        <button type="button" id="of-copy">事業所データをコピー</button>
+      </div>
+      <div class="note"><b>保存の流れ：</b>「② GitHubに保存して反映する」を押す → 自動でコピーされ、GitHubの編集画面が開きます → 中の文字を<b>全部選択（Ctrl+A）して削除し、貼り付け（Ctrl+V）</b> → 緑の「Commit changes...」→「Commit changes」。1〜2分でサイトに反映されます。</div>
+    </fieldset>
+  </form>
 </section>
 
 <section class="panel preview-col" id="preview"></section>
@@ -218,8 +252,65 @@
     var saved = null;
     try { saved = JSON.parse(localStorage.getItem('job-draft') || 'null'); } catch (e) {}
     if (saved) { load(saved); try { idManual = !!localStorage.getItem('job-draft-idmanual'); } catch (e) {} } else reset();
+    initOffices();
     $('f').addEventListener('input', update);
     $('f').addEventListener('change', update);
+  }
+
+
+  // ---- 事業所の情報・地図の編集 ----
+  var OF = ['name', 'service', 'postalCode', 'city', 'address', 'access', 'map'];
+  var OF_ID = { name: 'of-name', service: 'of-service', postalCode: 'of-postal', city: 'of-city', address: 'of-address', access: 'of-access', map: 'of-map' };
+  function ensureOption(sel, v) {
+    if (v && ![].some.call(sel.options, function (o) { return o.value === v; })) { var o = document.createElement('option'); o.textContent = v; sel.appendChild(o); }
+  }
+  function normalizeMap(v) {
+    v = String(v || '').trim();
+    var m = v.match(/@(-?\d+\.\d+),(-?\d+\.\d+)/) || v.match(/[?&](?:q|query|ll)=(-?\d+\.\d+)(?:,|%2C)\s*(-?\d+\.\d+)/i) || v.match(/!3d(-?\d+\.\d+)!4d(-?\d+\.\d+)/);
+    if (m) return m[1] + ', ' + m[2];
+    return v;
+  }
+  function currentOffice() { return offices.filter(function (o) { return o.id === $('of-office').value; })[0]; }
+  function officeFill() {
+    var o = currentOffice(); if (!o) return;
+    OF.forEach(function (k) { var el = $(OF_ID[k]); if (el.tagName === 'SELECT') ensureOption(el, o[k]); el.value = o[k] || ''; });
+    officeMap();
+  }
+  function officeMap() {
+    var o = currentOffice(); if (!o) return;
+    var q = JobRender.mapQuery(o);
+    var src = 'https://maps.google.com/maps?q=' + encodeURIComponent(q) + '&z=17&hl=ja&output=embed';
+    if ($('of-preview').getAttribute('src') !== src) $('of-preview').setAttribute('src', src);
+    $('of-q').textContent = '地図の検索に使う値：' + q;
+  }
+  var mapTimer;
+  function officeInput(ev) {
+    var o = currentOffice(); if (!o) return;
+    if (ev && ev.target === $('of-map') && ev.type === 'change') $('of-map').value = normalizeMap($('of-map').value);
+    OF.forEach(function (k) { var v = $(OF_ID[k]).value.trim(); if (k === 'map') v = normalizeMap(v); if (v) o[k] = v; else delete o[k]; });
+    clearTimeout(mapTimer); mapTimer = setTimeout(officeMap, 600);
+    $('office').innerHTML = offices.map(function (x) { return '<option value="' + JobRender.esc(x.id) + '">' + JobRender.esc(x.city + '｜' + x.service + '｜' + x.name) + '</option>'; }).join('');
+    var cur = (collect() || {}).office; if (cur) $('office').value = cur;
+    update();
+  }
+  function officesText() { return JSON.stringify(offices, null, 2) + '\n'; }
+  function initOffices() {
+    $('of-office').innerHTML = offices.map(function (o) { return '<option value="' + JobRender.esc(o.id) + '">' + JobRender.esc(o.city + '｜' + o.service + '｜' + o.name) + '</option>'; }).join('');
+    $('of-office').onchange = officeFill;
+    $('of').addEventListener('input', officeInput);
+    $('of').addEventListener('change', officeInput);
+    $('of-copy').onclick = function () {
+      navigator.clipboard.writeText(officesText()).then(function () { alert('事業所データをコピーしました'); }, function () { alert('コピーできませんでした'); });
+    };
+    $('of-github').onclick = function () {
+      var g = config.github || {};
+      var url = 'https://github.com/' + encodeURIComponent(g.owner) + '/' + encodeURIComponent(g.repo) + '/edit/' + encodeURIComponent(g.branch || 'main') + '/data/offices.json';
+      navigator.clipboard.writeText(officesText()).then(function () {
+        alert('事業所データをコピーしました。\n\nGitHubの編集画面が開いたら、中の文字を全部選択（Ctrl+A）→ 貼り付け（Ctrl+V）→ 緑の「Commit changes...」→「Commit changes」を押してください。');
+        window.open(url, '_blank', 'noopener');
+      }, function () { alert('コピーできませんでした。「事業所データをコピー」を試してください。'); });
+    };
+    officeFill();
   }
 
   function todayStr(addDays) {
