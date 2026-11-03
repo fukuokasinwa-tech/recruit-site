@@ -63,7 +63,7 @@ fs.mkdirSync(path.join(OUT, 'data'), { recursive: true });
 const esc = R.esc;
 const v = Date.now().toString(36);
 
-function layout({ title, description, canonical, body, head = '', depth = 0 }) {
+function layout({ title, description, canonical, body, head = '', depth = 0, image = '' }) {
   const up = depth ? '../'.repeat(depth) : './';
   return `<!doctype html>
 <html lang="ja">
@@ -77,7 +77,7 @@ function layout({ title, description, canonical, body, head = '', depth = 0 }) {
 <meta property="og:title" content="${esc(title)}">
 <meta property="og:description" content="${esc(description)}">
 <meta property="og:url" content="${esc(canonical)}">
-${config.logo ? `<meta property="og:image" content="${esc(R.absUrl(config, config.logo))}">` : ''}
+${image || config.logo ? `<meta property="og:image" content="${esc(R.absUrl(config, image || config.logo))}">` : ''}
 <link rel="stylesheet" href="${up}assets/style.css?v=${v}">
 ${head}
 </head>
@@ -104,6 +104,7 @@ for (const job of jobs) {
     title: `${job.title}｜${office.city}｜${config.siteName}`,
     description: desc,
     canonical: url,
+    image: (R.photosOf(job, office)[0] || {}).src || '',
     head: `<script type="application/ld+json">\n${R.jobPostingJsonLd(job, office, config)}\n</script>`,
     body: `<main class="wrap">
 <nav class="crumb"><a href="../">求人一覧</a> ＞ ${esc(job.title)}</nav>
@@ -126,7 +127,9 @@ const opt = (label, list) => `<option value="">${label}：すべて</option>` + 
 
 const cards = jobs.map(job => {
   const o = officeById[job.office];
+  const ph = R.photosOf(job, o)[0];
   return `<a class="card" href="jobs/${job.id}.html" data-city="${esc(o.city)}" data-service="${esc(o.service)}" data-emp="${esc(job.employmentType)}">
+  ${ph ? `<img class="thumb" src="${esc(R.photoSrc(ph, ''))}" alt="" loading="lazy">` : ''}
   <div class="badges"><span class="badge svc">${esc(o.service)}</span><span class="badge city">${esc(o.city)}</span><span class="badge emp">${esc(job.employmentType)}</span></div>
   <h2>${esc(job.title)}</h2>
   <div class="salary">${esc(R.salaryText(job))}</div>

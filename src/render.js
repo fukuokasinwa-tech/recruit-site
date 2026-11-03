@@ -115,8 +115,25 @@
     ['掲載期限', function (j) { return j.validThrough ? esc(j.validThrough.replace(/-/g, '/')) + ' まで' : ''; }]
   ];
 
+  // 写真（事業所の写真 ＋ 求人ごとの写真）
+  function photosOf(job, office) {
+    return [].concat(office.photos || [], job.photos || []).filter(function (p) { return p && p.src; });
+  }
+  function photoSrc(p, base) {
+    return /^https?:/.test(p.src) ? p.src : (base == null ? '../' : base) + p.src.replace(/^\//, '');
+  }
+  function galleryHtml(job, office, base) {
+    var ps = photosOf(job, office);
+    if (!ps.length) return '';
+    return '<div class="gallery no-print">' + ps.map(function (p, i) {
+      var src = esc(photoSrc(p, base));
+      return '<figure class="' + (i === 0 ? 'main' : '') + '"><a href="' + src + '" target="_blank" rel="noopener"><img src="' + src + '" alt="' + esc(p.caption || office.name) + '" loading="' + (i === 0 ? 'eager' : 'lazy') + '"></a>' +
+        (p.caption ? '<figcaption>' + esc(p.caption) + '</figcaption>' : '') + '</figure>';
+    }).join('') + '</div>';
+  }
+
   // 求人票本体（表形式）
-  function jobSheetHtml(job, office, config) {
+  function jobSheetHtml(job, office, config, base) {
     var rows = ROWS.map(function (r) {
       var v = r[1](job, office);
       if (!v || v === '<strong></strong>') return '';
@@ -131,6 +148,7 @@
       '<p class="salary">' + esc(salaryText(job)) + '</p>' +
       (tags ? '<div class="tags">' + tags + '</div>' : '') +
       '</header>' +
+      galleryHtml(job, office, base) +
       (job.message ? '<p class="message">' + nl2br(job.message) + '</p>' : '') +
       '<table class="sheet-table">' + rows + '</table>' +
       applyHtml(job, office, config) +
@@ -151,7 +169,7 @@
 
   var api = {
     esc: esc, nl2br: nl2br, salaryText: salaryText, fullAddress: fullAddress, isExpired: isExpired,
-    jobPostingJsonLd: jobPostingJsonLd, jobSheetHtml: jobSheetHtml, absUrl: absUrl,
+    jobPostingJsonLd: jobPostingJsonLd, jobSheetHtml: jobSheetHtml, photosOf: photosOf, photoSrc: photoSrc, absUrl: absUrl,
     EMPLOYMENT_TYPES: EMPLOYMENT_TYPES, SALARY_UNITS: SALARY_UNITS
   };
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
