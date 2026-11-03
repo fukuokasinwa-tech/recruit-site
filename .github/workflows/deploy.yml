@@ -35,6 +35,12 @@ jobs:
         run: node build.js
         env:
           SITE_URL: ${{ steps.pages.outputs.base_url }}
+      - name: 写真の位置情報（GPS）を削除
+        run: |
+          if [ -d dist/images ]; then
+            sudo apt-get install -y -qq libimage-exiftool-perl > /dev/null
+            exiftool -q -overwrite_original -r -ext jpg -ext jpeg -ext png -ext webp -ext heic -gps:all= -xmp:geotag= dist/images || true
+          fi
       - uses: actions/upload-pages-artifact@v3
         with:
           path: dist
