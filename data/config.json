@@ -2,7 +2,7 @@
   "orgName": "株式会社福岡心和",
   "siteName": "株式会社福岡心和 採用情報",
   "catchcopy": "株式会社福岡心和は、八女市吉田を拠点に、八女・久留米・柳川・筑後・大牟田で就労継続支援A型・B型、相談支援、放課後等デイサービスを運営しています。障がいのある方とこどもたちの「はたらく」「育つ」を一緒に支える仲間を募集しています。",
-  "siteUrl": "https://link-yame.github.io/recruit-site",
+  "siteUrl": "https://fukuokasinwa-tech.github.io/recruit-site",
   "logo": "",
   "hqPostalCode": "834-0000",
   "hqAddress": "福岡県八女市吉田（番地を入力）",
@@ -11,7 +11,7 @@
   "email": "recruit@example.com",
   "applyFormUrl": "",
   "github": {
-    "owner": "link-yame",
+    "owner": "fukuokasinwa-tech",
     "repo": "recruit-site",
     "branch": "main"
   }
