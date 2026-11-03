@@ -7,7 +7,22 @@
     "city": "八女市",
     "address": "本町2-475",
     "access": "マイカー通勤可・駐車場あり",
-    "phone": ""
+    "phone": "",
+    "logo": "images/yame-a/logo.jpg",
+    "photos": [
+      {
+        "src": "images/yame-a/gaikan.jpg",
+        "caption": "入口（八女市本町）"
+      },
+      {
+        "src": "images/yame-a/sagyou.jpg",
+        "caption": "作業スペース"
+      },
+      {
+        "src": "images/yame-a/kyukei.jpg",
+        "caption": "休憩・打ち合わせスペース"
+      }
+    ]
   },
   {
     "id": "yame-b",

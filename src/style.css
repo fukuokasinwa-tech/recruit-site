@@ -59,6 +59,10 @@ a { color: var(--accent); }
 .sheet { background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 24px; margin-bottom: 40px; }
 .sheet-head h1 { font-size: clamp(22px, 5vw, 28px); margin: 10px 0 4px; line-height: 1.4; }
 .sheet-head .salary { font-size: 20px; font-weight: 700; color: var(--accent); margin: 0; }
+.sheet-head { position: relative; }
+.sheet-head.has-logo { padding-right: 84px; }
+.office-logo { position: absolute; top: 0; right: 0; width: 72px; height: 72px; object-fit: contain; border-radius: 6px; }
+@media print { .office-logo { width: 56px; height: 56px; } }
 .message { background: var(--warm); border-radius: 8px; padding: 12px 16px; margin: 20px 0; }
 .sheet-table { width: 100%; border-collapse: collapse; margin: 20px 0; }
 .sheet-table th, .sheet-table td { border-top: 1px solid var(--line); padding: 12px 8px; vertical-align: top; text-align: left; }

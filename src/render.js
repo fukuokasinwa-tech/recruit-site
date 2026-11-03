@@ -142,7 +142,8 @@
     var tags = (job.tags || []).map(function (t) { return '<span class="tag">' + esc(t) + '</span>'; }).join('');
     return '' +
       '<article class="sheet">' +
-      '<header class="sheet-head">' +
+      '<header class="sheet-head' + (office.logo ? ' has-logo' : '') + '">' +
+      (office.logo ? '<img class="office-logo" src="' + esc(photoSrc({ src: office.logo }, base)) + '" alt="' + esc(office.name) + ' ロゴ">' : '') +
       '<div class="badges"><span class="badge svc">' + esc(office.service) + '</span><span class="badge city">' + esc(office.city) + '</span><span class="badge emp">' + esc(job.employmentType) + '</span></div>' +
       '<h1>' + esc(job.title) + '</h1>' +
       '<p class="salary">' + esc(salaryText(job)) + '</p>' +
