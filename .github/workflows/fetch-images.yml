@@ -1,0 +1,24 @@
+# 法人ホームページの写真を取得して「成果物」として保存（求人用写真の候補・手動実行のみ。サイトには自動で載りません）
+name: ホームページ写真の取得
+on:
+  workflow_dispatch:
+    inputs:
+      urls:
+        description: 写真を取得するページのURL（スペース区切り）
+        required: true
+permissions:
+  contents: read
+jobs:
+  fetch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: node tools/fetch-images.js out ${{ github.event.inputs.urls }}
+      - uses: actions/upload-artifact@v4
+        with:
+          name: homepage-images
+          path: out
+          retention-days: 3
