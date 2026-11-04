@@ -1,0 +1,20 @@
+# 法人ホームページの内容を取得してログに出す（採用ページの文章づくりの参考用・手動実行のみ）
+name: ホームページ内容の取得
+on:
+  workflow_dispatch:
+    inputs:
+      urls:
+        description: 取得するURL（スペース区切り）
+        required: true
+        default: https://fukushinkai-yame.jp/
+permissions:
+  contents: read
+jobs:
+  fetch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: node tools/fetch-pages.js ${{ github.event.inputs.urls }}
