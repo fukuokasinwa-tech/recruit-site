@@ -24,6 +24,8 @@
         var digits = el.tel.value.replace(/[^0-9]/g, '');
         if (!/^0\d{9,10}$/.test(digits)) { msgs.push('電話番号は市外局番から（10〜11桁）入力してください'); bad.push(el.tel); }
       }
+      need('email', 'メールアドレス');
+      if (el.email.value.trim() && !/^[^\s@＠]+@[^\s@＠]+\.[^\s@＠]+$/.test(el.email.value.trim())) { msgs.push('メールアドレスの形式を確認してください（例：yame.taro@example.com）'); bad.push(el.email); }
       var seen = {};
       [1, 2, 3].forEach(function (n) {
         var d = el['d' + n], t = el['t' + n];
@@ -55,7 +57,8 @@
         '■ 応募する事業所：' + el.place.value,
         '■ 職種：' + el.job.value + '（' + el.emp.value + '）',
         '■ お名前：' + el.name.value.trim(),
-        '■ 電話番号：' + el.tel.value.trim(), '',
+        '■ 電話番号：' + el.tel.value.trim(),
+        '■ メールアドレス：' + el.email.value.trim(), '',
         '■ 面接の希望日時',
         '　第1希望：' + fmt(el.d1.value) + ' ' + el.t1.value + '〜',
         '　第2希望：' + fmt(el.d2.value) + ' ' + el.t2.value + '〜',
@@ -75,7 +78,7 @@
       btn.disabled = true; btn.textContent = '送信中…';
       var data = {
         website: el.website.value, place: el.place.value, job: el.job.value, emp: el.emp.value,
-        name: el.name.value.trim(), tel: el.tel.value.trim(), msg: el.msg.value.trim(),
+        name: el.name.value.trim(), tel: el.tel.value.trim(), email: el.email.value.trim(), msg: el.msg.value.trim(),
         c1: fmt(el.d1.value) + ' ' + el.t1.value + '〜', c2: fmt(el.d2.value) + ' ' + el.t2.value + '〜', c3: fmt(el.d3.value) + ' ' + el.t3.value + '〜',
         subject: subject, page: location.href
       };

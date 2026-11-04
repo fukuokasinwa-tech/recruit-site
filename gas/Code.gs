@@ -13,6 +13,8 @@
 const TO = 'fsg.itoh@fukusokyo.jp';
 const SHEET_NAME = '応募一覧';
 const MAX_PER_HOUR = 30; // いたずら対策：1時間あたりの受付上限
+const REPLY_NAME = '福心会 採用担当';           // 応募者へ送る確認メールの差出人名
+const CONTACT = 'TEL 090-9574-2762（平日・土曜 9:00〜17:00）'; // 確認メールに書く問い合わせ先
 
 function doPost(e) {
   try {
@@ -21,27 +23,33 @@ function doPost(e) {
     // いたずら（自動投稿プログラム）対策：見えない欄に入力があれば受け付けたふりをして破棄
     if (d.website) return json_({ ok: true });
 
-    const need = ['place', 'job', 'name', 'tel', 'c1', 'c2', 'c3'];
+    const need = ['place', 'job', 'name', 'tel', 'email', 'c1', 'c2', 'c3'];
     for (const k of need) {
       if (!d[k] || !String(d[k]).trim()) return json_({ ok: false, error: '未入力: ' + k });
     }
     const v = {};
-    ['place', 'job', 'emp', 'name', 'tel', 'c1', 'c2', 'c3', 'page'].forEach(function (k) { v[k] = clip_(d[k], 200); });
+    ['place', 'job', 'emp', 'name', 'tel', 'email', 'c1', 'c2', 'c3', 'page'].forEach(function (k) { v[k] = clip_(d[k], 200); });
     v.msg = clip_(d.msg, 1000);
     if (!/^0\d{9,10}$/.test(v.tel.replace(/[^0-9]/g, ''))) return json_({ ok: false, error: '電話番号の形式' });
+    v.email = v.email.replace(/＠/g, '@').replace(/\s/g, '');
+    if (!/^[^@]+@[^@]+\.[^@]+$/.test(v.email)) return json_({ ok: false, error: 'メールアドレスの形式' });
 
     // 受付数の上限
     const cache = CacheService.getScriptCache();
     const n = Number(cache.get('count') || 0);
     if (n >= MAX_PER_HOUR) return json_({ ok: false, error: '混み合っています' });
     cache.put('count', String(n + 1), 3600);
+    // 同じメールアドレスからの連続送信を防ぐ（10分）
+    const key = 'mail:' + v.email.toLowerCase();
+    if (cache.get(key)) return json_({ ok: true });
+    cache.put(key, '1', 600);
 
     const now = Utilities.formatDate(new Date(), 'Asia/Tokyo', 'yyyy/MM/dd HH:mm');
 
     // 1. スプレッドシートに記録
     const ss = spreadsheet_();
     const sh = sheet_(ss);
-    sh.appendRow([now, v.place, v.job, v.emp, v.name, "'" + v.tel, v.c1, v.c2, v.c3, v.msg, '未対応']);
+    sh.appendRow([now, v.place, v.job, v.emp, v.name, "'" + v.tel, v.c1, v.c2, v.c3, v.msg, '未対応', v.email]);
 
     // 2. 採用担当へメール
     const subject = '【応募・面接希望】' + v.job + '　' + v.name + '様';
@@ -50,7 +58,8 @@ function doPost(e) {
       '■ 応募する事業所：' + v.place,
       '■ 職種：' + v.job + (v.emp ? '（' + v.emp + '）' : ''),
       '■ お名前：' + v.name,
-      '■ 電話番号：' + v.tel, '',
+      '■ 電話番号：' + v.tel,
+      '■ メールアドレス：' + v.email, '',
       '■ 面接の希望日時',
       '　第1希望：' + v.c1,
       '　第2希望：' + v.c2,
@@ -58,9 +67,32 @@ function doPost(e) {
       '■ ご質問・ご希望：' + (v.msg || 'なし'), '',
       '応募一覧（スプレッドシート）：' + ss.getUrl(),
       '応募ページ：' + v.page, '',
-      '※ このメールは求人サイトの応募フォームから自動で送信されています。応募者へは電話でご連絡ください。'
+      '――――――――――',
+      '★ このメールに「返信」すると、応募者（' + v.email + '）へそのまま届きます。',
+      '　 応募者には「応募を受け付けました」という確認メールを自動で送っています。'
     ].join('\n');
-    MailApp.sendEmail({ to: TO, subject: subject, body: body, name: '福心会 採用サイト' });
+    MailApp.sendEmail({ to: TO, subject: subject, body: body, name: '福心会 採用サイト', replyTo: v.email });
+
+    // 3. 応募者へ受付確認メール（返信先は採用担当）
+    const thanks = [
+      v.name + ' 様', '',
+      'このたびは、福心会の求人にご応募いただき、ありがとうございます。',
+      '以下の内容で応募を受け付けました。', '',
+      '■ 応募する事業所：' + v.place,
+      '■ 職種：' + v.job,
+      '■ 面接の希望日時',
+      '　第1希望：' + v.c1,
+      '　第2希望：' + v.c2,
+      '　第3希望：' + v.c3, '',
+      '内容を確認のうえ、採用担当より、お電話またはメールで面接の日時をご連絡いたします。',
+      '数日たっても連絡がない場合は、お手数ですが下記までお問い合わせください。', '',
+      '福心会グループ 採用担当（伊藤）',
+      CONTACT, '',
+      '※ このメールは応募フォームから自動で送信しています。',
+      '　 このメールに返信すると、採用担当に届きます。',
+      '※ お心当たりのない場合は、このメールを破棄してください。'
+    ].join('\n');
+    MailApp.sendEmail({ to: v.email, subject: '【福心会】ご応募ありがとうございます（' + v.job + '）', body: thanks, name: REPLY_NAME, replyTo: TO });
 
     return json_({ ok: true });
   } catch (err) {
@@ -98,8 +130,10 @@ function sheet_(ss) {
   let sh = ss.getSheetByName(SHEET_NAME);
   if (!sh) {
     sh = ss.insertSheet(SHEET_NAME);
-    sh.appendRow(['受付日時', '事業所', '職種', '雇用形態', 'お名前', '電話番号', '第1希望', '第2希望', '第3希望', 'ご質問・ご希望', '対応状況']);
+    sh.appendRow(['受付日時', '事業所', '職種', '雇用形態', 'お名前', '電話番号', '第1希望', '第2希望', '第3希望', 'ご質問・ご希望', '対応状況', 'メールアドレス']);
     sh.setFrozenRows(1);
+  } else if (sh.getRange(1, 12).getValue() !== 'メールアドレス') {
+    sh.getRange(1, 12).setValue('メールアドレス');
   }
   return sh;
 }
