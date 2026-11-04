@@ -78,6 +78,7 @@ function layout({ title, description, canonical, body, head = '', depth = 0, ima
 <title>${esc(title)}</title>
 <meta name="description" content="${esc(description)}">
 <link rel="canonical" href="${esc(canonical)}">
+${config.googleSiteVerification ? `<meta name="google-site-verification" content="${esc(String(config.googleSiteVerification).replace(/^.*content=["']?([^"' >]+).*$/s, '$1'))}">` : ''}
 <meta property="og:type" content="website">
 <meta property="og:title" content="${esc(title)}">
 <meta property="og:description" content="${esc(description)}">
