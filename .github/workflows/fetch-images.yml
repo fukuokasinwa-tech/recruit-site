@@ -19,7 +19,7 @@ jobs:
       - run: node tools/fetch-images.js out ${{ github.event.inputs.urls }}
       - name: 確認しやすい大きさに縮小
         run: |
-          sudo apt-get install -y -qq imagemagick > /dev/null
+          command -v mogrify > /dev/null || (sudo apt-get update -qq && sudo apt-get install -y -qq imagemagick > /dev/null)
           cd out && for f in *.jpg *.jpeg *.png *.webp; do [ -f "$f" ] && mogrify -auto-orient -resize '2000x2000>' -quality 88 "$f"; done; du -sh .
       - name: 一時ブランチ（tmp-homepage-images）に保存（確認後に削除）
         run: |
