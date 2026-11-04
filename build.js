@@ -112,7 +112,8 @@ ${job.published ? '' : '<p class="empty no-print">※ これは下書きのプ�
 ${R.jobSheetHtml(job, office, config)}
 <div class="tools no-print"><button onclick="window.print()">印刷する（A4求人票）</button>
 <button onclick="navigator.share ? navigator.share({title: document.title, url: location.href}) : navigator.clipboard.writeText(location.href).then(()=>alert('URLをコピーしました'))">共有する</button></div>
-</main>`
+</main>
+<script src="../assets/apply.js?v=${v}" defer></script>`
   });
   fs.writeFileSync(path.join(OUT, 'jobs', `${job.id}.html`), html);
 }
@@ -183,6 +184,7 @@ fs.writeFileSync(path.join(OUT, 'index.html'), indexHtml);
 // 静的ファイル
 fs.copyFileSync(path.join(ROOT, 'src/style.css'), path.join(OUT, 'assets/style.css'));
 fs.copyFileSync(path.join(ROOT, 'src/render.js'), path.join(OUT, 'assets/render.js'));
+fs.copyFileSync(path.join(ROOT, 'src/apply.js'), path.join(OUT, 'assets/apply.js'));
 fs.copyFileSync(path.join(ROOT, 'admin/index.html'), path.join(OUT, 'admin/index.html'));
 fs.copyFileSync(path.join(ROOT, 'data/offices.json'), path.join(OUT, 'data/offices.json'));
 fs.writeFileSync(path.join(OUT, 'data/config.json'), JSON.stringify(config, null, 2));

@@ -179,14 +179,56 @@
       '</article>';
   }
 
+  // 面接の時間の候補（data/config.json の interview で変更可）
+  function interviewTimes(config) {
+    var iv = config.interview || {};
+    var toMin = function (t) { var m = String(t).split(':'); return Number(m[0]) * 60 + Number(m[1] || 0); };
+    var start = toMin(iv.start || '9:00'), end = toMin(iv.end || '16:00'), step = Number(iv.step || 30), out = [];
+    for (var t = start; t <= end; t += step) out.push(Math.floor(t / 60) + ':' + ('0' + (t % 60)).slice(-2));
+    return out;
+  }
+
+  // メールでの応募・面接申し込みフォーム（送信は応募者のメールアプリから。サーバー不要・無料）
+  function mailFormHtml(job, office, config) {
+    if (!config.email) return '';
+    var times = interviewTimes(config).map(function (t) { return '<option value="' + t + '">' + t + '</option>'; }).join('');
+    var cands = [1, 2, 3].map(function (n) {
+      return '<div class="cand"><span class="cand-label">第' + n + '希望<span class="req">必須</span></span>' +
+        '<input type="date" name="d' + n + '" required aria-label="第' + n + '希望の日付">' +
+        '<select name="t' + n + '" required aria-label="第' + n + '希望の時間"><option value="">時間を選択</option>' + times + '</select></div>';
+    }).join('');
+    var place = office.name + '（' + office.service + '）';
+    return '<form class="mailform no-print" novalidate data-to="' + esc(config.email) + '" data-closed="' + esc((config.interview && config.interview.closedDays || [0]).join(',')) + '">' +
+      '<h3>メールで応募・面接のお申し込み</h3>' +
+      '<p class="muted">入力して「メールを作成する」を押すと、お使いのメールアプリに内容が入った状態で開きます。そのまま<b>送信</b>してください。</p>' +
+      '<label>応募する事業所・職種</label>' +
+      '<div class="mf-place">' + esc(place) + '<br><span class="muted">' + esc(job.title) + '</span></div>' +
+      '<input type="hidden" name="place" value="' + esc(place) + '">' +
+      '<input type="hidden" name="job" value="' + esc(job.title) + '">' +
+      '<input type="hidden" name="emp" value="' + esc(job.employmentType) + '">' +
+      '<label for="mf-name-' + esc(job.id) + '">お名前<span class="req">必須</span></label>' +
+      '<input type="text" id="mf-name-' + esc(job.id) + '" name="name" required autocomplete="name" placeholder="例：八女 太郎">' +
+      '<label for="mf-tel-' + esc(job.id) + '">電話番号<span class="req">必須</span></label>' +
+      '<input type="tel" id="mf-tel-' + esc(job.id) + '" name="tel" required autocomplete="tel" inputmode="tel" placeholder="例：090-1234-5678">' +
+      '<label>面接の希望日時（3つ選んでください）<span class="req">必須</span></label>' +
+      '<p class="muted" style="margin:0 0 6px">' + (config.interview && config.interview.note ? esc(config.interview.note) : '日曜日はお休みです。') + '</p>' +
+      cands +
+      '<label for="mf-msg-' + esc(job.id) + '">ご質問・ご希望など（任意）</label>' +
+      '<textarea id="mf-msg-' + esc(job.id) + '" name="msg" rows="3" placeholder="例：見学も希望します"></textarea>' +
+      '<p class="mf-error" role="alert" hidden></p>' +
+      '<button type="submit" class="btn primary">メールを作成する</button>' +
+      '<details class="mf-fallback" hidden><summary>メールアプリが開かない場合</summary>' +
+      '<p>下の内容をコピーして、<b>' + esc(config.email) + '</b> 宛てにメールで送ってください。</p>' +
+      '<textarea readonly rows="10" class="mf-text"></textarea><button type="button" class="btn mf-copy">内容をコピー</button></details>' +
+      '</form>';
+  }
+
   function applyHtml(job, office, config) {
-    var subject = '【応募】' + job.title + '（' + office.name + '）';
-    var body = 'お名前：\nふりがな：\n電話番号：\nご希望の連絡時間帯：\n見学希望：あり／なし\nご質問など：\n';
     var btns = [];
     if (config.applyFormUrl) btns.push('<a class="btn primary" href="' + esc(config.applyFormUrl) + '" target="_blank" rel="noopener">応募フォームから応募</a>');
     if (config.phone) btns.push('<a class="btn" href="tel:' + esc(String(config.phone).replace(/[^0-9+]/g, '')) + '">電話で応募・問い合わせ<br><small>' + esc(config.phone) + (config.phoneHours ? '（' + esc(config.phoneHours) + '）' : '') + '</small></a>');
-    if (config.email) btns.push('<a class="btn" href="mailto:' + esc(config.email) + '?subject=' + encodeURIComponent(subject) + '&amp;body=' + encodeURIComponent(body) + '">メールで応募</a>');
-    return '<section class="apply no-print"><h2>応募・見学のお申し込み</h2><p>' + (config.contactName ? '採用担当：' + esc(config.contactName) + '　' : '') + '「求人サイトを見た」とお伝えください。見学だけでも歓迎です。</p><div class="btns">' + btns.join('') + '</div></section>' +
+    return '<section class="apply no-print"><h2>応募・見学のお申し込み</h2><p>' + (config.contactName ? '採用担当：' + esc(config.contactName) + '　' : '') + '「求人サイトを見た」とお伝えください。見学だけでも歓迎です。</p><div class="btns">' + btns.join('') + '</div>' +
+      mailFormHtml(job, office, config) + '</section>' +
       '<section class="apply print-only"><h2>応募・お問い合わせ</h2><p>' + (config.contactName ? '採用担当：' + esc(config.contactName) + '　' : '') + 'TEL ' + esc(config.phone) + (config.phoneHours ? '（' + esc(config.phoneHours) + '）' : '') + (config.email ? '　/　' + esc(config.email) : '') + '</p></section>';
   }
 
