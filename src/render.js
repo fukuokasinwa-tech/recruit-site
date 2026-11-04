@@ -182,7 +182,7 @@
       '<table class="sheet-table">' + rows + '</table>' +
       mapHtml(office) +
       applyHtml(job, office, config) +
-      '<p class="org">' + esc(config.orgName) + (config.hqAddress ? '　' + (config.hqPostalCode ? '〒' + esc(config.hqPostalCode) + ' ' : '') + esc(config.hqAddress) : '') + '</p>' +
+      '<p class="org">' + esc(config.displayName || config.orgName) + (config.hqAddress ? '　' + (config.hqPostalCode ? '〒' + esc(config.hqPostalCode) + ' ' : '') + esc(config.hqAddress) : '') + '</p>' +
       '</article>';
   }
 

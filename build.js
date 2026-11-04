@@ -93,7 +93,7 @@ ${head}
 </div></header>
 ${body}
 <footer class="site-foot"><div class="wrap">
-  ${config.homepage ? `<a href="${esc(config.homepage)}" target="_blank" rel="noopener">${esc(config.orgName)}</a>` : esc(config.orgName)}${config.hqAddress ? '　' + (config.hqPostalCode ? '〒' + esc(config.hqPostalCode) + ' ' : '') + esc(config.hqAddress) : ''}　TEL ${esc(config.phone)}
+  ${config.homepage ? `<a href="${esc(config.homepage)}" target="_blank" rel="noopener">${esc(config.displayName || config.orgName)}</a>` : esc(config.displayName || config.orgName)}${config.hqAddress ? '　' + (config.hqPostalCode ? '〒' + esc(config.hqPostalCode) + ' ' : '') + esc(config.hqAddress) : ''}　TEL ${esc(config.phone)}
 </div></footer>
 </body>
 </html>`;
@@ -144,15 +144,29 @@ const cards = jobs.map(job => {
 </a>`;
 }).join('\n');
 
+function heroHtml() {
+  const h = config.hero;
+  if (!h) return `<section class="hero"><div class="wrap"><h1>一緒に働く仲間を募集しています</h1><p>${esc(config.catchcopy)}</p></div></section>`;
+  const br = t => R.nl2br(t);
+  return `<section class="hero"><div class="wrap">
+  ${h.eyebrow ? `<p class="eyebrow">${esc(h.eyebrow)}</p>` : ''}
+  <h1>${br(h.title)}</h1>
+  <p class="lead">${br(h.lead)}</p>
+</div></section>
+${(h.points || []).length ? `<section class="points"><div class="wrap"><h2 class="sec-title">福心会で働く魅力</h2><div class="point-grid">${h.points.map((p, i) => `<div class="point"><span class="num">${i + 1}</span><h3>${esc(p.title)}</h3><p>${br(p.text)}</p></div>`).join('')}</div>
+${(h.jobs || []).length ? `<h2 class="sec-title">募集している主なお仕事</h2><div class="job-types">${h.jobs.map(j => `<div class="job-type"><h3>${esc(j.title)}</h3><p>${br(j.text)}</p></div>`).join('')}</div>` : ''}
+${h.closing ? `<p class="closing">${br(h.closing)}</p>` : ''}
+${h.moreUrl ? `<p class="more"><a href="${esc(h.moreUrl)}" target="_blank" rel="noopener">${esc(h.moreLabel || 'くわしくはこちら')} ↗</a></p>` : ''}
+</div></section>` : ''}
+<div class="wrap"><h2 class="sec-title" style="margin-top:32px">募集中の求人</h2></div>`;
+}
+
 const indexHtml = layout({
   title: `${config.siteName}｜八女市・久留米市・柳川市・筑後市・大牟田市の福祉の求人`,
   description: config.catchcopy,
   canonical: config.siteUrl + '/',
   head: `<script type="application/ld+json">${JSON.stringify({ '@context': 'https://schema.org', '@type': 'Organization', name: config.orgName, url: config.siteUrl, telephone: config.phone, address: { '@type': 'PostalAddress', addressRegion: '福岡県', streetAddress: config.hqAddress || undefined, postalCode: config.hqPostalCode || undefined, addressCountry: 'JP' } })}</script>`,
-  body: `<section class="hero"><div class="wrap">
-  <h1>一緒に働く仲間を募集しています</h1>
-  <p>${esc(config.catchcopy)}</p>
-</div></section>
+  body: `${heroHtml()}
 <main class="wrap">
   <div class="filters">
     <select id="f-city" aria-label="地域">${opt('地域', cities)}</select>
