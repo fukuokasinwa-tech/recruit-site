@@ -57,6 +57,7 @@
 - 面接の時間帯・休みの曜日は `config.interview`（start / end / step / closedDays / note）で設定。
 
 ## 連絡先（data/config.json）
-- 採用担当：伊藤 / TEL 090-9574-2762（平日・土曜 9:00〜17:00）
+- 採用担当：伊藤 / TEL 090-9574-2762（平日・土曜 9:00〜17:00）/ 応募メール fsg.itoh@fukusokyo.jp
+- 面接：9:00〜17:00（開始16:30まで・30分ごと）、日曜休み
 - 本社：〒834-0006 福岡県八女市吉田367-6
 - サイトURL：https://fukuokasinwa-tech.github.io/recruit-site/
