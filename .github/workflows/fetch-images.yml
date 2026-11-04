@@ -1,4 +1,4 @@
-# 法人ホームページの写真を取得して「成果物」として保存（求人用写真の候補・手動実行のみ。サイトには自動で載りません）
+# 法人ホームページの写真を取得して一時ブランチに保存（求人用写真の候補・手動実行のみ。サイトには自動で載りません）
 name: ホームページ写真の取得
 on:
   workflow_dispatch:
@@ -7,7 +7,7 @@ on:
         description: 写真を取得するページのURL（スペース区切り）
         required: true
 permissions:
-  contents: read
+  contents: write
 jobs:
   fetch:
     runs-on: ubuntu-latest
@@ -17,8 +17,11 @@ jobs:
         with:
           node-version: 22
       - run: node tools/fetch-images.js out ${{ github.event.inputs.urls }}
-      - uses: actions/upload-artifact@v4
-        with:
-          name: homepage-images
-          path: out
-          retention-days: 3
+      - name: 一時ブランチ（tmp-homepage-images）に保存（確認後に削除）
+        run: |
+          git config user.name "github-actions"
+          git config user.email "github-actions@users.noreply.github.com"
+          git checkout --orphan tmp-homepage-images
+          git rm -rq --cached . && find . -mindepth 1 -maxdepth 1 ! -name out ! -name .git -exec rm -rf {} +
+          git add out && git commit -qm "ホームページ写真の候補（確認用・一時保存）"
+          git push -f origin tmp-homepage-images
