@@ -39,13 +39,8 @@ function doPost(e) {
     const now = Utilities.formatDate(new Date(), 'Asia/Tokyo', 'yyyy/MM/dd HH:mm');
 
     // 1. スプレッドシートに記録
-    const ss = SpreadsheetApp.getActiveSpreadsheet();
-    let sh = ss.getSheetByName(SHEET_NAME);
-    if (!sh) {
-      sh = ss.insertSheet(SHEET_NAME);
-      sh.appendRow(['受付日時', '事業所', '職種', '雇用形態', 'お名前', '電話番号', '第1希望', '第2希望', '第3希望', 'ご質問・ご希望', '対応状況']);
-      sh.setFrozenRows(1);
-    }
+    const ss = spreadsheet_();
+    const sh = sheet_(ss);
     sh.appendRow([now, v.place, v.job, v.emp, v.name, "'" + v.tel, v.c1, v.c2, v.c3, v.msg, '未対応']);
 
     // 2. 採用担当へメール
@@ -80,7 +75,33 @@ function doGet() {
 
 // 設置後の動作確認用：エディタ上部の関数選択で「testMail」を選んで「実行」
 function testMail() {
-  MailApp.sendEmail(TO, '【テスト】求人サイト応募フォーム', 'これはテスト送信です。このメールが届けば、応募の自動送信の準備ができています。');
+  const ss = spreadsheet_();
+  sheet_(ss);
+  MailApp.sendEmail(TO, '【テスト】求人サイト応募フォーム',
+    'これはテスト送信です。このメールが届けば、応募の自動送信の準備ができています。\n\n応募一覧（スプレッドシート）：' + ss.getUrl());
+}
+
+// 応募を記録するスプレッドシート
+// スプレッドシートの「拡張機能」→「Apps Script」から作った場合はそのスプレッドシート、
+// そうでない場合は「採用 応募一覧」というスプレッドシートを自動で作ってそこに記録する
+function spreadsheet_() {
+  const active = SpreadsheetApp.getActiveSpreadsheet();
+  if (active) return active;
+  const props = PropertiesService.getScriptProperties();
+  const id = props.getProperty('SHEET_ID');
+  if (id) { try { return SpreadsheetApp.openById(id); } catch (e) {} }
+  const ss = SpreadsheetApp.create('採用 応募一覧');
+  props.setProperty('SHEET_ID', ss.getId());
+  return ss;
+}
+function sheet_(ss) {
+  let sh = ss.getSheetByName(SHEET_NAME);
+  if (!sh) {
+    sh = ss.insertSheet(SHEET_NAME);
+    sh.appendRow(['受付日時', '事業所', '職種', '雇用形態', 'お名前', '電話番号', '第1希望', '第2希望', '第3希望', 'ご質問・ご希望', '対応状況']);
+    sh.setFrozenRows(1);
+  }
+  return sh;
 }
 
 function clip_(s, n) { return String(s == null ? '' : s).trim().slice(0, n); }
