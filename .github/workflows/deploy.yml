@@ -35,6 +35,14 @@ jobs:
         run: node build.js
         env:
           SITE_URL: ${{ steps.pages.outputs.base_url }}
+      - name: 応募受付（Google Apps Script）の動作確認
+        run: |
+          URL=$(node -e "console.log(require('./data/config.json').formEndpoint||'')")
+          if [ -n "$URL" ]; then
+            echo "確認先: $URL"
+            curl -sSL --max-time 30 "$URL" | head -c 300 || echo "※ 応募受付に接続できませんでした"
+            echo
+          fi
       - name: 写真の位置情報（GPS）を削除
         run: |
           if [ -d dist/images ]; then
