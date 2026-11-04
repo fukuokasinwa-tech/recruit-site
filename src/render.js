@@ -102,7 +102,7 @@
   var ROWS = [
     ['職種', function (j) { return esc(j.title); }],
     ['事業所', function (j, o, c) { return esc(o.name) + '<br><span class="muted">' + esc(o.service) + '</span>' +
-      '<br><span class="muted">運営：' + esc(operatorName(o, c)) + (c.displayName ? '（' + esc(c.displayName) + 'グループ）' : '') + '</span>' + (officeHomepage(o) ? '<br><a class="no-print" href="' + esc(officeHomepage(o)) + '" target="_blank" rel="noopener">事業所のホームページを見る ↗</a>' : ''); }],
+      '<br><span class="muted">運営：' + esc(operatorName(o, c)) + (c.displayName ? '（' + esc(/グループ$/.test(c.displayName) ? c.displayName : c.displayName + 'グループ') + '）' : '') + '</span>' + (officeHomepage(o) ? '<br><a class="no-print" href="' + esc(officeHomepage(o)) + '" target="_blank" rel="noopener">事業所のホームページを見る ↗</a>' : ''); }],
     ['雇用形態', function (j) { return esc(j.employmentType); }],
     ['仕事内容', function (j) { return nl2br(j.description); }],
     ['給与', function (j) { return '<strong>' + esc(salaryText(j)) + '</strong>' + (j.salaryNote ? '<br>' + nl2br(j.salaryNote) : ''); }],
