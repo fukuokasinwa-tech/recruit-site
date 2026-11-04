@@ -10,7 +10,7 @@
  */
 'use strict';
 
-const MAX_PAGES = 60;
+const MAX_PAGES = 150;
 const MAX_DEPTH = 3;
 const TIMEOUT_MS = 10000;
 const SKIP_EXT = /\.(jpe?g|png|gif|webp|svg|ico|pdf|zip|docx?|xlsx?|pptx?|mp4|mp3|css|js|xml|json|txt)(\?|$)/i;
@@ -115,7 +115,7 @@ async function crawl(home, log) {
     const og = decode((html.match(/<meta[^>]+property=["']og:title["'][^>]+content=["']([^"']*)/i) || [])[1] || '');
     const heads = [...html.matchAll(/<h[1-3][^>]*>([\s\S]*?)<\/h[1-3]>/gi)].map(m => textOf(m[1])).join(' ');
     const main = (html.match(/<main[\s\S]*?<\/main>/i) || html.match(/<article[\s\S]*?<\/article>/i) || [html])[0];
-    pages.push({ url: r.url || url, path: decodeURIComponent(new URL(r.url || url).pathname), title: norm(title + ' ' + og), heads: norm(heads), body: norm(textOf(main)) });
+    pages.push({ rawTitle: (og || title).trim(), url: r.url || url, path: decodeURIComponent(new URL(r.url || url).pathname), title: norm(title + ' ' + og), heads: norm(heads), body: norm(textOf(main)) });
     if (depth < MAX_DEPTH) {
       for (const m of html.matchAll(/<a\s[^>]*href=["']([^"'#][^"']*)["']/gi)) {
         const c = clean(m[1], r.url || url, base);
@@ -124,6 +124,9 @@ async function crawl(home, log) {
     }
   }
   log(`  法人ホームページ ${pages.length}ページを確認しました`);
+  // 確認用：浅い階層のページ一覧（事業所名の確認に使う）
+  pages.filter(p => p.path.split('/').filter(Boolean).length <= 1 && !/\/(news|blog|category|\d{4})\b/i.test(p.path))
+    .forEach(p => log(`    ・${p.rawTitle.slice(0, 60)}  ${p.url}`));
   return pages;
 }
 
