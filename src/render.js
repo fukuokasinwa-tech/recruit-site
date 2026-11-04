@@ -101,7 +101,7 @@
 
   var ROWS = [
     ['職種', function (j) { return esc(j.title); }],
-    ['事業所', function (j, o) { return esc(o.name) + '<br><span class="muted">' + esc(o.service) + '</span>'; }],
+    ['事業所', function (j, o) { return esc(o.name) + '<br><span class="muted">' + esc(o.service) + '</span>' + (officeHomepage(o) ? '<br><a class="no-print" href="' + esc(officeHomepage(o)) + '" target="_blank" rel="noopener">事業所のホームページを見る ↗</a>' : ''); }],
     ['雇用形態', function (j) { return esc(j.employmentType); }],
     ['仕事内容', function (j) { return nl2br(j.description); }],
     ['給与', function (j) { return '<strong>' + esc(salaryText(j)) + '</strong>' + (j.salaryNote ? '<br>' + nl2br(j.salaryNote) : ''); }],
@@ -134,6 +134,12 @@
     }).join('') + '</div>';
   }
 
+  // 事業所のホームページ（offices.json の homepage が手動設定、なければ公開時の自動判定結果 _homepage）
+  function officeHomepage(o) {
+    if (o.homepage === false) return '';
+    return (typeof o.homepage === 'string' && o.homepage.trim()) || o._homepage || '';
+  }
+
   // 地図（Googleマップ・APIキー不要の無料埋め込み）
   // office.map に「住所」「緯度,経度」「建物名」のいずれかを入れると、その場所を表示。空なら住所で表示。
   function mapQuery(office) {
@@ -150,7 +156,8 @@
     return '<section class="map no-print"><h2>勤務地の地図</h2>' +
       '<p class="muted">' + esc(office.name) + '　〒' + esc(office.postalCode) + ' ' + esc(fullAddress(office)) + '</p>' +
       '<div class="map-frame"><iframe src="' + esc(src) + '" title="' + esc(office.name) + 'の地図" loading="lazy" referrerpolicy="no-referrer-when-downgrade" allowfullscreen></iframe></div>' +
-      '<p><a class="btn" href="' + esc(mapLinkUrl(office)) + '" target="_blank" rel="noopener">Googleマップで開く（道案内）</a></p></section>';
+      '<p class="map-btns"><a class="btn" href="' + esc(mapLinkUrl(office)) + '" target="_blank" rel="noopener">Googleマップで開く（道案内）</a>' +
+      (officeHomepage(office) ? '<a class="btn" href="' + esc(officeHomepage(office)) + '" target="_blank" rel="noopener">' + esc(office.name) + 'のホームページ</a>' : '') + '</p></section>';
   }
 
   // 求人票本体（表形式）
@@ -233,7 +240,7 @@
   }
 
   var api = {
-    esc: esc, nl2br: nl2br, salaryText: salaryText, fullAddress: fullAddress, isExpired: isExpired, mapHtml: mapHtml, mapQuery: mapQuery,
+    esc: esc, nl2br: nl2br, salaryText: salaryText, fullAddress: fullAddress, isExpired: isExpired, mapHtml: mapHtml, mapQuery: mapQuery, officeHomepage: officeHomepage,
     jobPostingJsonLd: jobPostingJsonLd, jobSheetHtml: jobSheetHtml, photosOf: photosOf, photoSrc: photoSrc, absUrl: absUrl,
     EMPLOYMENT_TYPES: EMPLOYMENT_TYPES, SALARY_UNITS: SALARY_UNITS
   };

@@ -53,6 +53,11 @@ if (new Set(jobs.map(j => j.id)).size !== jobs.length) {
 }
 jobs.sort((a, b) => (b.datePosted || '').localeCompare(a.datePosted || ''));
 
+async function main() {
+// 事業所ごとのホームページ（法人ホームページから自動判定）
+const officeLinks = await require('./src/office-links.js').resolve(config, offices);
+for (const o of offices) o._homepage = officeLinks[o.id] ? officeLinks[o.id].url : '';
+
 // ---- 出力 ----
 fs.rmSync(OUT, { recursive: true, force: true });
 fs.mkdirSync(path.join(OUT, 'jobs'), { recursive: true });
@@ -88,7 +93,7 @@ ${head}
 </div></header>
 ${body}
 <footer class="site-foot"><div class="wrap">
-  ${esc(config.orgName)}${config.hqAddress ? '　' + (config.hqPostalCode ? '〒' + esc(config.hqPostalCode) + ' ' : '') + esc(config.hqAddress) : ''}　TEL ${esc(config.phone)}
+  ${config.homepage ? `<a href="${esc(config.homepage)}" target="_blank" rel="noopener">${esc(config.orgName)}</a>` : esc(config.orgName)}${config.hqAddress ? '　' + (config.hqPostalCode ? '〒' + esc(config.hqPostalCode) + ' ' : '') + esc(config.hqAddress) : ''}　TEL ${esc(config.phone)}
 </div></footer>
 </body>
 </html>`;
@@ -188,6 +193,7 @@ fs.copyFileSync(path.join(ROOT, 'src/apply.js'), path.join(OUT, 'assets/apply.js
 fs.copyFileSync(path.join(ROOT, 'admin/index.html'), path.join(OUT, 'admin/index.html'));
 fs.copyFileSync(path.join(ROOT, 'data/offices.json'), path.join(OUT, 'data/offices.json'));
 fs.writeFileSync(path.join(OUT, 'data/config.json'), JSON.stringify(config, null, 2));
+fs.writeFileSync(path.join(OUT, 'data/office-links.json'), JSON.stringify(officeLinks, null, 2));
 if (config.logo && fs.existsSync(path.join(ROOT, config.logo))) {
   fs.mkdirSync(path.dirname(path.join(OUT, config.logo)), { recursive: true });
   fs.copyFileSync(path.join(ROOT, config.logo), path.join(OUT, config.logo));
@@ -206,3 +212,6 @@ fs.writeFileSync(path.join(OUT, 'sitemap.xml'), sitemap);
 fs.writeFileSync(path.join(OUT, 'robots.txt'), `User-agent: *\nDisallow: /admin/\nSitemap: ${config.siteUrl}/sitemap.xml\n`);
 
 console.log(`\n完了: ${jobs.length}件の求人ページを dist/ に生成しました${withDrafts ? '（下書き含む）' : ''}`);
+}
+
+main().catch(e => { console.error(e); process.exit(1); });

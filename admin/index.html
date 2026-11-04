@@ -147,6 +147,9 @@
       </div>
       <label for="of-access">アクセス・駐車場</label>
       <input type="text" id="of-access" placeholder="マイカー通勤可・駐車場あり">
+      <label for="of-homepage">事業所のホームページ<span class="hint">空欄なら法人ホームページから自動で判定</span></label>
+      <input type="url" id="of-homepage" placeholder="例：https://fukushinkai-yame.jp/○○/">
+      <p class="muted" id="of-hp-auto" style="margin:4px 0 0"></p>
       <label for="of-map">地図の位置<span class="hint">住所で場所がずれる時だけ入力（空欄なら上の住所で表示）</span></label>
       <input type="text" id="of-map" placeholder="例：33.2117, 130.5578 ／ GoogleマップのURL ／ 建物名">
       <div class="note" style="margin-top:8px">
@@ -172,7 +175,7 @@
 (function () {
   'use strict';
   var $ = function (id) { return document.getElementById(id); };
-  var config = {}, offices = [];
+  var config = {}, offices = [], officeLinks = {};
   var idManual = false, idSuffix = Math.random().toString(36).slice(2, 6);
   var FIELDS = ['title','office','employmentType','salaryUnit','salaryMin','salaryMax','salaryNote','description','requirements','welcome','hours','holidays','insurance','benefits','trial','headcount','tagsExtra','message','datePosted','validThrough','published','id'];
   var TAGS = ['未経験歓迎','資格不問','資格を活かせる','車通勤OK','駐車場あり','扶養内OK','週3日〜','残業ほぼなし','土日休み','日曜休み','主婦・主夫歓迎','ブランクOK','Wワーク可','ミドル・シニア活躍','賞与あり','資格取得支援','見学歓迎','急募'];
@@ -238,7 +241,14 @@
   });
 
   Promise.all([fetch('../data/config.json').then(function (r) { return r.json(); }), fetch('../data/offices.json').then(function (r) { return r.json(); })])
-    .then(function (res) { config = res[0]; offices = res[1]; start(); })
+    .then(function (res) {
+      config = res[0]; offices = res[1];
+      return fetch('../data/office-links.json').then(function (r) { return r.ok ? r.json() : {}; }).catch(function () { return {}; }).then(function (l) {
+        officeLinks = l || {};
+        offices.forEach(function (o) { if (officeLinks[o.id]) o._homepage = officeLinks[o.id].url; });
+        start();
+      });
+    })
     .catch(function () {
       $('cfg-warn').innerHTML = '<div class="warn">設定ファイルを読み込めませんでした。このページは公開した求人サイトの <b>/admin/</b> で開くか、パソコンで <code>node preview.js</code> を実行して開いてください。</div>';
     });
@@ -259,8 +269,8 @@
 
 
   // ---- 事業所の情報・地図の編集 ----
-  var OF = ['name', 'service', 'postalCode', 'city', 'address', 'access', 'map'];
-  var OF_ID = { name: 'of-name', service: 'of-service', postalCode: 'of-postal', city: 'of-city', address: 'of-address', access: 'of-access', map: 'of-map' };
+  var OF = ['name', 'service', 'postalCode', 'city', 'address', 'access', 'map', 'homepage'];
+  var OF_ID = { name: 'of-name', service: 'of-service', postalCode: 'of-postal', city: 'of-city', address: 'of-address', access: 'of-access', map: 'of-map', homepage: 'of-homepage' };
   function ensureOption(sel, v) {
     if (v && ![].some.call(sel.options, function (o) { return o.value === v; })) { var o = document.createElement('option'); o.textContent = v; sel.appendChild(o); }
   }
@@ -273,7 +283,9 @@
   function currentOffice() { return offices.filter(function (o) { return o.id === $('of-office').value; })[0]; }
   function officeFill() {
     var o = currentOffice(); if (!o) return;
-    OF.forEach(function (k) { var el = $(OF_ID[k]); if (el.tagName === 'SELECT') ensureOption(el, o[k]); el.value = o[k] || ''; });
+    OF.forEach(function (k) { var el = $(OF_ID[k]); if (el.tagName === 'SELECT') ensureOption(el, o[k]); el.value = (typeof o[k] === 'string' ? o[k] : '') || ''; });
+    var a = officeLinks[o.id];
+    $('of-hp-auto').textContent = a ? '前回の公開時の判定：' + a.url + '（' + a.how + '）' : '';
     officeMap();
   }
   function officeMap() {
@@ -293,7 +305,7 @@
     var cur = (collect() || {}).office; if (cur) $('office').value = cur;
     update();
   }
-  function officesText() { return JSON.stringify(offices, null, 2) + '\n'; }
+  function officesText() { return JSON.stringify(offices, function (k, v) { return k === '_homepage' ? undefined : v; }, 2) + '\n'; }
   function initOffices() {
     $('of-office').innerHTML = offices.map(function (o) { return '<option value="' + JobRender.esc(o.id) + '">' + JobRender.esc(o.city + '｜' + o.service + '｜' + o.name) + '</option>'; }).join('');
     $('of-office').onchange = officeFill;
