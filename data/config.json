@@ -16,5 +16,14 @@
     "branch": "main"
   },
   "contactName": "伊藤",
-  "homepage": "https://fukushinkai-yame.jp/"
+  "homepage": "https://fukushinkai-yame.jp/",
+  "interview": {
+    "start": "9:00",
+    "end": "16:30",
+    "step": 30,
+    "closedDays": [
+      0
+    ],
+    "note": "面接は9:00〜17:00の間で行います（開始時間は16:30まで）。日曜日はお休みです。"
+  }
 }
