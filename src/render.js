@@ -205,9 +205,12 @@
         '<select name="t' + n + '" required aria-label="第' + n + '希望の時間"><option value="">時間を選択</option>' + times + '</select></div>';
     }).join('');
     var place = office.name + '（' + office.service + '）';
-    return '<form class="mailform no-print" novalidate data-to="' + esc(config.email) + '" data-closed="' + esc((config.interview && config.interview.closedDays || [0]).join(',')) + '">' +
-      '<h3>メールで応募・面接のお申し込み</h3>' +
-      '<p class="muted">入力して「メールを作成する」を押すと、お使いのメールアプリに内容が入った状態で開きます。そのまま<b>送信</b>してください。</p>' +
+    var auto = !!config.formEndpoint;
+    return '<form class="mailform no-print" novalidate data-to="' + esc(config.email) + '"' + (auto ? ' data-endpoint="' + esc(config.formEndpoint) + '"' : '') + ' data-closed="' + esc((config.interview && config.interview.closedDays || [0]).join(',')) + '">' +
+      '<h3>' + (auto ? 'Webで応募・面接のお申し込み' : 'メールで応募・面接のお申し込み') + '</h3>' +
+      (auto ? '<p class="muted">入力して「応募する」を押すと、採用担当に<b>自動で送信</b>されます。担当者から電話でご連絡します。</p>'
+            : '<p class="muted">入力して「メールを作成する」を押すと、お使いのメールアプリに内容が入った状態で開きます。そのまま<b>送信</b>してください。</p>') +
+      '<div class="mf-hp" aria-hidden="true"><label>ホームページ<input type="text" name="website" tabindex="-1" autocomplete="off"></label></div>' +
       '<label>応募する事業所・職種</label>' +
       '<div class="mf-place">' + esc(place) + '<br><span class="muted">' + esc(job.title) + '</span></div>' +
       '<input type="hidden" name="place" value="' + esc(place) + '">' +
@@ -223,8 +226,9 @@
       '<label for="mf-msg-' + esc(job.id) + '">ご質問・ご希望など（任意）</label>' +
       '<textarea id="mf-msg-' + esc(job.id) + '" name="msg" rows="3" placeholder="例：見学も希望します"></textarea>' +
       '<p class="mf-error" role="alert" hidden></p>' +
-      '<button type="submit" class="btn primary">メールを作成する</button>' +
-      '<details class="mf-fallback" hidden><summary>メールアプリが開かない場合</summary>' +
+      '<button type="submit" class="btn primary">' + (auto ? '応募する' : 'メールを作成する') + '</button>' +
+      '<div class="mf-done" role="status" hidden><b>応募を受け付けました。</b><br>ありがとうございます。担当者から、ご入力いただいた電話番号へご連絡します。数日たっても連絡がない場合は、お手数ですがお電話でお問い合わせください。</div>' +
+      '<details class="mf-fallback" hidden><summary>' + (auto ? 'うまく送信できない場合' : 'メールアプリが開かない場合') + '</summary>' +
       '<p>下の内容をコピーして、<b>' + esc(config.email) + '</b> 宛てにメールで送ってください。</p>' +
       '<textarea readonly rows="10" class="mf-text"></textarea><button type="button" class="btn mf-copy">内容をコピー</button></details>' +
       '</form>';

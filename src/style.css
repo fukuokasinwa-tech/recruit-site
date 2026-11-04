@@ -98,6 +98,8 @@ a { color: var(--accent); }
 .mailform .mf-error { color: #a12a1b; background: #fdecea; border-radius: 8px; padding: 10px 12px; font-size: 14px; margin: 12px 0 0; }
 .mailform button.btn { margin-top: 14px; width: 100%; font: inherit; font-weight: 700; cursor: pointer; }
 .mf-fallback { margin-top: 12px; font-size: 14px; }
+.mf-hp { position: absolute; left: -9999px; width: 1px; height: 1px; overflow: hidden; }
+.mf-done { margin-top: 14px; padding: 14px 16px; border-radius: 10px; background: #fff; border: 2px solid var(--accent); line-height: 1.7; }
 .mf-fallback textarea { font-size: 13px; }
 @media (max-width: 600px) { .mailform .cand { grid-template-columns: 1fr 1fr; } .mailform .cand-label { grid-column: 1 / -1; } }
 .print-only { display: none; }

@@ -64,9 +64,35 @@
         'どうぞよろしくお願いいたします。'
       ].join('\n');
       var fb = f.querySelector('.mf-fallback');
-      fb.querySelector('.mf-text').value = '宛先：' + f.dataset.to + '\n件名：' + subject + '\n\n' + body;
-      fb.hidden = false;
-      location.href = 'mailto:' + f.dataset.to + '?subject=' + encodeURIComponent(subject) + '&body=' + encodeURIComponent(body);
+      var mailText = '宛先：' + f.dataset.to + '\n件名：' + subject + '\n\n' + body;
+      var mailto = 'mailto:' + f.dataset.to + '?subject=' + encodeURIComponent(subject) + '&body=' + encodeURIComponent(body);
+      fb.querySelector('.mf-text').value = mailText;
+
+      if (!f.dataset.endpoint) { fb.hidden = false; location.href = mailto; return; }
+
+      // 自動送信（Google Apps Script）
+      var btn = f.querySelector('button[type=submit]');
+      btn.disabled = true; btn.textContent = '送信中…';
+      var data = {
+        website: el.website.value, place: el.place.value, job: el.job.value, emp: el.emp.value,
+        name: el.name.value.trim(), tel: el.tel.value.trim(), msg: el.msg.value.trim(),
+        c1: fmt(el.d1.value) + ' ' + el.t1.value + '〜', c2: fmt(el.d2.value) + ' ' + el.t2.value + '〜', c3: fmt(el.d3.value) + ' ' + el.t3.value + '〜',
+        subject: subject, page: location.href
+      };
+      fetch(f.dataset.endpoint, { method: 'POST', body: JSON.stringify(data) })
+        .then(function (r) { return r.json(); })
+        .then(function (res) {
+          if (!res || !res.ok) throw new Error((res && res.error) || 'error');
+          [].forEach.call(f.querySelectorAll('input:not([type=hidden]), select, textarea, button[type=submit], .cand, label, .mf-place, p.muted'), function (x) { x.hidden = true; x.style.display = 'none'; });
+          f.querySelector('.mf-done').hidden = false;
+          f.querySelector('.mf-done').scrollIntoView({ block: 'center', behavior: 'smooth' });
+        })
+        .catch(function () {
+          btn.disabled = false; btn.textContent = '応募する';
+          err.innerHTML = '送信できませんでした。時間をおいてもう一度お試しいただくか、下の「うまく送信できない場合」から、メールまたはお電話でご応募ください。';
+          err.hidden = false; fb.hidden = false; fb.open = true;
+          if (!fb.querySelector('.mf-mailto')) { var a = document.createElement('a'); a.className = 'btn mf-mailto'; a.textContent = 'メールアプリで送る'; a.href = mailto; a.style.marginTop = '8px'; fb.appendChild(a); }
+        });
     });
 
     var copy = f.querySelector('.mf-copy');
