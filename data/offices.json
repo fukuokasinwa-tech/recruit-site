@@ -57,6 +57,32 @@
     "logo": "images/yame-soudan-hop/logo.png"
   },
   {
+    "id": "yame-day-palette",
+    "name": "児童発達ステーション・パレット",
+    "service": "放課後等デイサービス",
+    "operator": "【要確認】",
+    "postalCode": "834-0014",
+    "city": "八女市",
+    "address": "忠見961-1",
+    "access": "八女市立忠見小学校跡地（駐車場：【要確認】）",
+    "phone": "",
+    "logo": "images/yame-day-palette/logo.jpg",
+    "photos": [
+      {
+        "src": "images/yame-day-palette/genkan.jpg",
+        "caption": "玄関"
+      },
+      {
+        "src": "images/yame-day-palette/iriguchi.jpg",
+        "caption": "入口・くつ箱"
+      },
+      {
+        "src": "images/yame-day-palette/heya.jpg",
+        "caption": "広々とした活動スペース"
+      }
+    ]
+  },
+  {
     "id": "yame-b",
     "name": "（事業所名）八女",
     "service": "就労継続支援B型",
