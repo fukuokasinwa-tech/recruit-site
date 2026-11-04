@@ -145,6 +145,8 @@
           <select id="of-city"><option>八女市</option><option>久留米市</option><option>柳川市</option><option>筑後市</option><option>大牟田市</option><option>みやま市</option><option>広川町</option></select></div>
         <div><label for="of-address">町名・番地</label><input type="text" id="of-address" placeholder="本町2-475"></div>
       </div>
+      <label for="of-operator">運営法人（雇用する会社）<span class="hint">求人票の「運営」とGoogleしごと検索の会社名になります</span></label>
+      <select id="of-operator"><option>株式会社福岡心和</option><option>特定非営利活動法人福岡県総合福祉協議会</option><option>株式会社心和ホールディングス</option><option>株式会社心和</option><option>株式会社心和アドバンス</option><option>株式会社佐賀心和</option><option>株式会社りひろ</option><option>株式会社沖縄心和</option><option>株式会社SeaArrow</option></select>
       <label for="of-access">アクセス・駐車場</label>
       <input type="text" id="of-access" placeholder="マイカー通勤可・駐車場あり">
       <label for="of-homepage">事業所のホームページ<span class="hint">空欄なら法人ホームページから自動で判定</span></label>
@@ -269,8 +271,8 @@
 
 
   // ---- 事業所の情報・地図の編集 ----
-  var OF = ['name', 'service', 'postalCode', 'city', 'address', 'access', 'map', 'homepage'];
-  var OF_ID = { name: 'of-name', service: 'of-service', postalCode: 'of-postal', city: 'of-city', address: 'of-address', access: 'of-access', map: 'of-map', homepage: 'of-homepage' };
+  var OF = ['name', 'service', 'operator', 'postalCode', 'city', 'address', 'access', 'map', 'homepage'];
+  var OF_ID = { name: 'of-name', service: 'of-service', postalCode: 'of-postal', city: 'of-city', address: 'of-address', access: 'of-access', map: 'of-map', homepage: 'of-homepage', operator: 'of-operator' };
   function ensureOption(sel, v) {
     if (v && ![].some.call(sel.options, function (o) { return o.value === v; })) { var o = document.createElement('option'); o.textContent = v; sel.appendChild(o); }
   }

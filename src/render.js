@@ -49,8 +49,8 @@
       employmentType: EMPLOYMENT_TYPES[job.employmentType] || 'OTHER',
       hiringOrganization: {
         '@type': 'Organization',
-        name: config.orgName,
-        sameAs: config.siteUrl
+        name: operatorName(office, config),
+        sameAs: config.homepage || config.siteUrl
       },
       jobLocation: {
         '@type': 'Place',
@@ -63,7 +63,7 @@
           addressCountry: 'JP'
         }
       },
-      identifier: { '@type': 'PropertyValue', name: config.orgName, value: job.id },
+      identifier: { '@type': 'PropertyValue', name: operatorName(office, config), value: job.id },
       directApply: true
     };
     var ll = String(office.map || '').match(/^\s*(-?\d+(?:\.\d+)?)\s*,\s*(-?\d+(?:\.\d+)?)\s*$/);
@@ -101,7 +101,8 @@
 
   var ROWS = [
     ['職種', function (j) { return esc(j.title); }],
-    ['事業所', function (j, o) { return esc(o.name) + '<br><span class="muted">' + esc(o.service) + '</span>' + (officeHomepage(o) ? '<br><a class="no-print" href="' + esc(officeHomepage(o)) + '" target="_blank" rel="noopener">事業所のホームページを見る ↗</a>' : ''); }],
+    ['事業所', function (j, o, c) { return esc(o.name) + '<br><span class="muted">' + esc(o.service) + '</span>' +
+      '<br><span class="muted">運営：' + esc(operatorName(o, c)) + (c.displayName ? '（' + esc(c.displayName) + 'グループ）' : '') + '</span>' + (officeHomepage(o) ? '<br><a class="no-print" href="' + esc(officeHomepage(o)) + '" target="_blank" rel="noopener">事業所のホームページを見る ↗</a>' : ''); }],
     ['雇用形態', function (j) { return esc(j.employmentType); }],
     ['仕事内容', function (j) { return nl2br(j.description); }],
     ['給与', function (j) { return '<strong>' + esc(salaryText(j)) + '</strong>' + (j.salaryNote ? '<br>' + nl2br(j.salaryNote) : ''); }],
@@ -134,6 +135,9 @@
     }).join('') + '</div>';
   }
 
+  // 雇用する会社（運営法人）：offices.json の operator、なければ config.orgName
+  function operatorName(o, config) { return (o && o.operator) || config.orgName; }
+
   // 事業所のホームページ（offices.json の homepage が手動設定、なければ公開時の自動判定結果 _homepage）
   function officeHomepage(o) {
     if (o.homepage === false) return '';
@@ -163,7 +167,7 @@
   // 求人票本体（表形式）
   function jobSheetHtml(job, office, config, base) {
     var rows = ROWS.map(function (r) {
-      var v = r[1](job, office);
+      var v = r[1](job, office, config);
       if (!v || v === '<strong></strong>') return '';
       return '<tr><th>' + r[0] + '</th><td>' + v + '</td></tr>';
     }).join('');
@@ -244,7 +248,7 @@
   }
 
   var api = {
-    esc: esc, nl2br: nl2br, salaryText: salaryText, fullAddress: fullAddress, isExpired: isExpired, mapHtml: mapHtml, mapQuery: mapQuery, officeHomepage: officeHomepage,
+    esc: esc, nl2br: nl2br, salaryText: salaryText, fullAddress: fullAddress, isExpired: isExpired, mapHtml: mapHtml, mapQuery: mapQuery, officeHomepage: officeHomepage, operatorName: operatorName,
     jobPostingJsonLd: jobPostingJsonLd, jobSheetHtml: jobSheetHtml, photosOf: photosOf, photoSrc: photoSrc, absUrl: absUrl,
     EMPLOYMENT_TYPES: EMPLOYMENT_TYPES, SALARY_UNITS: SALARY_UNITS
   };
