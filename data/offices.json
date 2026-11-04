@@ -53,7 +53,8 @@
         "src": "images/yame-soudan-hop/soudanshitsu.jpg",
         "caption": "相談室"
       }
-    ]
+    ],
+    "logo": "images/yame-soudan-hop/logo.png"
   },
   {
     "id": "yame-b",
