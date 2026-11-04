@@ -38,6 +38,10 @@
     "phone": "",
     "photos": [
       {
+        "src": "images/yame-soudan-hop/tatemono.jpg",
+        "caption": "玄関（障がい者支援センターこころ・ほっぷ）"
+      },
+      {
         "src": "images/yame-soudan-hop/iriguchi.jpg",
         "caption": "相談支援センターほっぷ 入口"
       },
@@ -48,10 +52,6 @@
       {
         "src": "images/yame-soudan-hop/soudanshitsu.jpg",
         "caption": "相談室"
-      },
-      {
-        "src": "images/yame-soudan-hop/tatemono.jpg",
-        "caption": "建物の入口（障がい者支援センターこころ）"
       }
     ]
   },
