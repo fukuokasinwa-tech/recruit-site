@@ -266,7 +266,7 @@
   }
   function normalizeMap(v) {
     v = String(v || '').trim();
-    var m = v.match(/@(-?\d+\.\d+),(-?\d+\.\d+)/) || v.match(/[?&](?:q|query|ll)=(-?\d+\.\d+)(?:,|%2C)\s*(-?\d+\.\d+)/i) || v.match(/!3d(-?\d+\.\d+)!4d(-?\d+\.\d+)/);
+    var m = v.match(/!3d(-?\d+\.\d+)!4d(-?\d+\.\d+)/) || v.match(/[?&](?:q|query|ll)=(-?\d+\.\d+)(?:,|%2C)\s*(-?\d+\.\d+)/i) || v.match(/@(-?\d+\.\d+),(-?\d+\.\d+)/);
     if (m) return m[1] + ', ' + m[2];
     return v;
   }
