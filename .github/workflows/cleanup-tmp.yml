@@ -1,0 +1,12 @@
+# 写真取得ツールが作った一時ブランチ（tmp-homepage-images）を削除する（手動実行）
+name: 一時ブランチの削除
+on:
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  cleanup:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: git push origin --delete tmp-homepage-images || echo "一時ブランチはありません"
