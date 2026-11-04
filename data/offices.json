@@ -35,7 +35,25 @@
     "city": "八女市",
     "address": "津江高島565-3",
     "access": "障がい者支援センターこころ内・マイカー通勤可・駐車場あり",
-    "phone": ""
+    "phone": "",
+    "photos": [
+      {
+        "src": "images/yame-soudan-hop/iriguchi.jpg",
+        "caption": "相談支援センターほっぷ 入口"
+      },
+      {
+        "src": "images/yame-soudan-hop/soudan-space.jpg",
+        "caption": "相談スペース"
+      },
+      {
+        "src": "images/yame-soudan-hop/soudanshitsu.jpg",
+        "caption": "相談室"
+      },
+      {
+        "src": "images/yame-soudan-hop/tatemono.jpg",
+        "caption": "建物の入口（障がい者支援センターこころ）"
+      }
+    ]
   },
   {
     "id": "yame-b",
