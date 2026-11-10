@@ -12,7 +12,9 @@
     var max = new Date(); max.setDate(max.getDate() + 90);
     [1, 2, 3].forEach(function (n) { var d = f.elements['d' + n]; d.min = ymd(tomorrow); d.max = ymd(max); });
     var err = f.querySelector('.mf-error');
-    f.addEventListener('input', function (e) { e.target.classList.remove('invalid'); });
+    var clearErr = function (e) { e.target.classList.remove('invalid'); if (!f.querySelector('.invalid')) err.hidden = true; };
+    f.addEventListener('input', clearErr);
+    f.addEventListener('change', clearErr);
 
     f.addEventListener('submit', function (e) {
       e.preventDefault();
@@ -20,9 +22,13 @@
       function need(name, label) { if (!el[name].value.trim()) { msgs.push(label + 'を入力してください'); bad.push(el[name]); } }
       need('name', 'お名前');
       need('tel', '電話番号');
-      if (el.tel.value.trim()) {
+      // 全角数字・全角ハイフン・+81 も受け付けるよう、半角にそろえる
+      el.tel.value = el.tel.value.trim().replace(/[０-９]/g, function (c) { return String.fromCharCode(c.charCodeAt(0) - 0xFEE0); })
+        .replace(/[－ー―‐−（）()　\s]/g, function (c) { return /[－ー―‐−]/.test(c) ? '-' : ''; }).replace(/^\+81-?/, '0');
+      el.email.value = el.email.value.trim().replace(/[！-～]/g, function (c) { return String.fromCharCode(c.charCodeAt(0) - 0xFEE0); });
+      if (el.tel.value) {
         var digits = el.tel.value.replace(/[^0-9]/g, '');
-        if (!/^0\d{9,10}$/.test(digits)) { msgs.push('電話番号は市外局番から（10〜11桁）入力してください'); bad.push(el.tel); }
+        if (!/^0\d{9,10}$/.test(digits)) { msgs.push('電話番号は、携帯電話（例：090-1234-5678）または市外局番からの番号（例：0943-12-3456）を入力してください'); bad.push(el.tel); }
       }
       need('email', 'メールアドレス');
       if (el.email.value.trim() && !/^[^\s@＠]+@[^\s@＠]+\.[^\s@＠]+$/.test(el.email.value.trim())) { msgs.push('メールアドレスの形式を確認してください（例：yame.taro@example.com）'); bad.push(el.email); }

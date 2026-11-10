@@ -224,6 +224,7 @@
       '<input type="text" id="mf-name-' + esc(job.id) + '" name="name" required autocomplete="name" placeholder="例：八女 太郎">' +
       '<label for="mf-tel-' + esc(job.id) + '">電話番号<span class="req">必須</span></label>' +
       '<input type="tel" id="mf-tel-' + esc(job.id) + '" name="tel" required autocomplete="tel" inputmode="tel" placeholder="例：090-1234-5678">' +
+      '<p class="muted" style="margin:4px 0 0">携帯電話の番号でもOKです。</p>' +
       '<label for="mf-mail-' + esc(job.id) + '">メールアドレス<span class="req">必須</span></label>' +
       '<input type="email" id="mf-mail-' + esc(job.id) + '" name="email" required autocomplete="email" inputmode="email" placeholder="例：yame.taro@example.com">' +
       '<p class="muted" style="margin:4px 0 0">' + (auto && config.formAutoReply ? '受付確認のメールをお送りします。採用担当からの返信もこのアドレスに届きます。' : '採用担当からの返信は、このアドレスに届きます。') + '</p>' +
