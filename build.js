@@ -224,7 +224,9 @@ ${jobs.map(j => `  <url><loc>${config.siteUrl}/jobs/${j.id}.html</loc><lastmod>$
 </urlset>
 `;
 fs.writeFileSync(path.join(OUT, 'sitemap.xml'), sitemap);
-fs.writeFileSync(path.join(OUT, 'robots.txt'), `User-agent: *\nDisallow: /admin/\nSitemap: ${config.siteUrl}/sitemap.xml\n`);
+// テキスト形式のサイトマップ（Google が XML を読み込めない時の予備）
+fs.writeFileSync(path.join(OUT, 'sitemap.txt'), [config.siteUrl + '/', ...jobs.map(j => `${config.siteUrl}/jobs/${j.id}.html`)].join('\n') + '\n');
+fs.writeFileSync(path.join(OUT, 'robots.txt'), `User-agent: *\nDisallow: /admin/\nSitemap: ${config.siteUrl}/sitemap.xml\nSitemap: ${config.siteUrl}/sitemap.txt\n`);
 
 console.log(`\n完了: ${jobs.length}件の求人ページを dist/ に生成しました${withDrafts ? '（下書き含む）' : ''}`);
 }
