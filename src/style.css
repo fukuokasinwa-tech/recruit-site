@@ -105,6 +105,7 @@ a { color: var(--accent); }
 .mailform label { display: block; font-size: 14px; font-weight: 700; margin: 14px 0 4px; }
 .mailform .req { white-space: nowrap; font-size: 11px; color: #fff; background: #c0392b; border-radius: 4px; padding: 1px 6px; margin-left: 6px; font-weight: 700; vertical-align: 1px; }
 .mailform input, .mailform select, .mailform textarea { width: 100%; font: inherit; font-size: 16px; padding: 10px; border: 1px solid #cfcac0; border-radius: 8px; background: #fff; }
+.mailform .bring { margin: 0 0 8px; font-size: 14px; }
 .mailform .mf-place { padding: 10px 12px; border-radius: 8px; background: #f3f1ec; font-weight: 700; line-height: 1.5; }
 .mailform .mf-place .muted { font-weight: 400; }
 .mailform .cand { display: grid; grid-template-columns: 7.5em minmax(0, 1.4fr) minmax(0, 1fr); gap: 8px; align-items: center; margin-bottom: 8px; }

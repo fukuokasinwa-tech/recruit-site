@@ -58,7 +58,7 @@
 - `config.formAutoReply` が true の時だけ、受付完了画面で「確認メールを送りました」と表示する（`gas/Code.gs` の新しい版がデプロイされてから true にする）。
 - `formEndpoint` が無い時は応募者のメールアプリ（mailto）で送信。どちらもサーバー・有料サービスは使わない。
 - `gas/Code.gs` を変えた時は、ユーザーに Apps Script へ貼り直し →「デプロイを管理」→ 新バージョンで更新してもらう。
-- 面接の時間帯・休みの曜日は `config.interview`（start / end / step / closedDays / note）で設定。
+- 面接の時間帯・休みの曜日・当日の持ち物は `config.interview`（start / end / step / closedDays / note / bring）で設定。持ち物（現在：履歴書）は応募欄・完了画面・印刷用求人票・応募者への確認メールに表示（確認メールへはサイトから送るので、変更時に Apps Script の更新は不要）。
 
 ## 連絡先（data/config.json）
 - 採用担当：伊藤 / TEL 090-9574-2762（平日・土曜 9:00〜17:00）/ 応募メール fsg.itoh@fukusokyo.jp

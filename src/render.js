@@ -210,7 +210,7 @@
     }).join('');
     var place = office.name + '（' + office.service + '）';
     var auto = !!config.formEndpoint;
-    return '<form class="mailform no-print" novalidate data-to="' + esc(config.email) + '"' + (auto ? ' data-endpoint="' + esc(config.formEndpoint) + '"' : '') + ' data-closed="' + esc((config.interview && config.interview.closedDays || [0]).join(',')) + '">' +
+    return '<form class="mailform no-print" novalidate data-to="' + esc(config.email) + '"' + (auto ? ' data-endpoint="' + esc(config.formEndpoint) + '"' : '') + ' data-closed="' + esc((config.interview && config.interview.closedDays || [0]).join(',')) + '"' + (config.interview && config.interview.bring ? ' data-bring="' + esc(config.interview.bring) + '"' : '') + '>' +
       '<h3>' + (auto ? 'Webで応募・面接のお申し込み' : 'メールで応募・面接のお申し込み') + '</h3>' +
       (auto ? '<p class="muted">入力して「応募する」を押すと、採用担当に<b>自動で送信</b>されます。担当者から、お電話またはメールでご連絡します。</p>'
             : '<p class="muted">入力して「メールを作成する」を押すと、お使いのメールアプリに内容が入った状態で開きます。そのまま<b>送信</b>してください。</p>') +
@@ -230,12 +230,13 @@
       '<p class="muted" style="margin:4px 0 0">' + (auto && config.formAutoReply ? '受付確認のメールをお送りします。採用担当からの返信もこのアドレスに届きます。' : '採用担当からの返信は、このアドレスに届きます。') + '</p>' +
       '<label>面接の希望日時（3つ選んでください）<span class="req">必須</span></label>' +
       '<p class="muted" style="margin:0 0 6px">' + (config.interview && config.interview.note ? esc(config.interview.note) : '日曜日はお休みです。') + '</p>' +
+      (config.interview && config.interview.bring ? '<p class="bring">面接当日の持ち物：<b>' + esc(config.interview.bring) + '</b></p>' : '') +
       cands +
       '<label for="mf-msg-' + esc(job.id) + '">ご質問・ご希望など（任意）</label>' +
       '<textarea id="mf-msg-' + esc(job.id) + '" name="msg" rows="3" placeholder="例：見学も希望します"></textarea>' +
       '<p class="mf-error" role="alert" hidden></p>' +
       '<button type="submit" class="btn primary">' + (auto ? '応募する' : 'メールを作成する') + '</button>' +
-      '<div class="mf-done" role="status" hidden><b>応募を受け付けました。</b><br>' + (config.formAutoReply ? 'ありがとうございます。ご入力いただいたメールアドレスに<b>受付確認のメール</b>をお送りしました。担当者から、お電話またはメールでご連絡します。<br>※ 確認メールが届かない場合は、迷惑メールフォルダもご確認ください。数日たっても連絡がない場合は、お手数ですがお電話でお問い合わせください。' : 'ありがとうございます。担当者から、お電話またはメールでご連絡します。数日たっても連絡がない場合は、お手数ですがお電話でお問い合わせください。') + '</div>' +
+      '<div class="mf-done" role="status" hidden><b>応募を受け付けました。</b><br>' + (config.interview && config.interview.bring ? '面接当日は<b>' + esc(config.interview.bring) + '</b>をお持ちください。<br>' : '') + (config.formAutoReply ? 'ありがとうございます。ご入力いただいたメールアドレスに<b>受付確認のメール</b>をお送りしました。担当者から、お電話またはメールでご連絡します。<br>※ 確認メールが届かない場合は、迷惑メールフォルダもご確認ください。数日たっても連絡がない場合は、お手数ですがお電話でお問い合わせください。' : 'ありがとうございます。担当者から、お電話またはメールでご連絡します。数日たっても連絡がない場合は、お手数ですがお電話でお問い合わせください。') + '</div>' +
       '<details class="mf-fallback" hidden><summary>' + (auto ? 'うまく送信できない場合' : 'メールアプリが開かない場合') + '</summary>' +
       '<p>下の内容をコピーして、<b>' + esc(config.email) + '</b> 宛てにメールで送ってください。</p>' +
       '<textarea readonly rows="10" class="mf-text"></textarea><button type="button" class="btn mf-copy">内容をコピー</button></details>' +
@@ -246,9 +247,9 @@
     var btns = [];
     if (config.applyFormUrl) btns.push('<a class="btn primary" href="' + esc(config.applyFormUrl) + '" target="_blank" rel="noopener">応募フォームから応募</a>');
     if (config.phone) btns.push('<a class="btn" href="tel:' + esc(String(config.phone).replace(/[^0-9+]/g, '')) + '">電話で応募・問い合わせ<br><small>' + esc(config.phone) + (config.phoneHours ? '（' + esc(config.phoneHours) + '）' : '') + '</small></a>');
-    return '<section class="apply no-print"><h2>応募・見学のお申し込み</h2><p>' + (config.contactName ? '採用担当：' + esc(config.contactName) + '　' : '') + '「求人サイトを見た」とお伝えください。見学だけでも歓迎です。</p><div class="btns">' + btns.join('') + '</div>' +
+    return '<section class="apply no-print"><h2>応募・見学のお申し込み</h2><p>' + (config.contactName ? '採用担当：' + esc(config.contactName) + '　' : '') + '「求人サイトを見た」とお伝えください。見学だけでも歓迎です。' + (config.interview && config.interview.bring ? '<br>面接当日の持ち物：<b>' + esc(config.interview.bring) + '</b>' : '') + '</p><div class="btns">' + btns.join('') + '</div>' +
       mailFormHtml(job, office, config) + '</section>' +
-      '<section class="apply print-only"><h2>応募・お問い合わせ</h2><p>' + (config.contactName ? '採用担当：' + esc(config.contactName) + '　' : '') + 'TEL ' + esc(config.phone) + (config.phoneHours ? '（' + esc(config.phoneHours) + '）' : '') + (config.email ? '　/　' + esc(config.email) : '') + '</p></section>';
+      '<section class="apply print-only"><h2>応募・お問い合わせ</h2><p>' + (config.contactName ? '採用担当：' + esc(config.contactName) + '　' : '') + 'TEL ' + esc(config.phone) + (config.phoneHours ? '（' + esc(config.phoneHours) + '）' : '') + (config.email ? '　/　' + esc(config.email) : '') + (config.interview && config.interview.bring ? '<br>面接当日の持ち物：' + esc(config.interview.bring) : '') + '</p></section>';
   }
 
   var api = {

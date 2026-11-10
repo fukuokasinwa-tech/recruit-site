@@ -30,6 +30,7 @@ function doPost(e) {
     const v = {};
     ['place', 'job', 'emp', 'name', 'tel', 'email', 'c1', 'c2', 'c3', 'page'].forEach(function (k) { v[k] = clip_(d[k], 200); });
     v.msg = clip_(d.msg, 1000);
+    v.bring = clip_(d.bring, 100); // 面接当日の持ち物（サイトの設定から届く）
     if (!/^0\d{9,10}$/.test(v.tel.replace(/[^0-9]/g, ''))) return json_({ ok: false, error: '電話番号の形式' });
     v.email = v.email.replace(/＠/g, '@').replace(/\s/g, '');
     if (!/^[^@]+@[^@]+\.[^@]+$/.test(v.email)) return json_({ ok: false, error: 'メールアドレスの形式' });
@@ -84,6 +85,7 @@ function doPost(e) {
       '　第1希望：' + v.c1,
       '　第2希望：' + v.c2,
       '　第3希望：' + v.c3, '',
+      (v.bring ? '■ 面接当日の持ち物：' + v.bring + '\n' : '') +
       '内容を確認のうえ、採用担当より、お電話またはメールで面接の日時をご連絡いたします。',
       '数日たっても連絡がない場合は、お手数ですが下記までお問い合わせください。', '',
       '福心会グループ 採用担当（伊藤）',

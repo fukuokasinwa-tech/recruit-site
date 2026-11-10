@@ -24,7 +24,8 @@
     "closedDays": [
       0
     ],
-    "note": "面接は9:00〜17:00の間で行います（開始時間は16:30まで）。日曜日はお休みです。"
+    "note": "面接は9:00〜17:00の間で行います（開始時間は16:30まで）。日曜日はお休みです。",
+    "bring": "履歴書"
   },
   "formEndpoint": "https://script.google.com/macros/s/AKfycbwfWjfe7o1LP4aiXH31XirigsZDqnx6YmCtjeZ5x3vvjA78xqGsOcfn1IbXxmTbJ1_b/exec",
   "hero": {

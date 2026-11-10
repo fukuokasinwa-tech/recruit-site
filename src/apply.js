@@ -86,7 +86,7 @@
         website: el.website.value, place: el.place.value, job: el.job.value, emp: el.emp.value,
         name: el.name.value.trim(), tel: el.tel.value.trim(), email: el.email.value.trim(), msg: el.msg.value.trim(),
         c1: fmt(el.d1.value) + ' ' + el.t1.value + '〜', c2: fmt(el.d2.value) + ' ' + el.t2.value + '〜', c3: fmt(el.d3.value) + ' ' + el.t3.value + '〜',
-        subject: subject, page: location.href
+        subject: subject, page: location.href, bring: f.dataset.bring || ''
       };
       fetch(f.dataset.endpoint, { method: 'POST', body: JSON.stringify(data) })
         .then(function (r) { return r.json(); })
