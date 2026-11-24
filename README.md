@@ -88,7 +88,6 @@ Claude Code に「このフォルダを GitHub の ＜ユーザー名＞/recruit
    - `service` は「就労継続支援A型」「就労継続支援B型」「相談支援」「放課後等デイサービス」など
 4. 「Commit changes」で保存 → 1〜2分で反映
 
-> ⚠️ `jobs/sample-*.json` は見本です（非公開設定）。不要になったら削除してください。
 
 ---
 
