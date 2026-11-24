@@ -6,7 +6,7 @@
   function ymd(d) { return d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate()); }
   function fmt(v) { var p = v.split('-'); var d = new Date(+p[0], +p[1] - 1, +p[2]); return p[0] + '年' + (+p[1]) + '月' + (+p[2]) + '日（' + WD[d.getDay()] + '）'; }
 
-  [].forEach.call(document.querySelectorAll('form.mailform'), function (f) {
+  [].forEach.call(document.querySelectorAll('form.mailform:not(.inqform)'), function (f) {
     var closed = (f.dataset.closed || '').split(',').filter(Boolean).map(Number);
     var tomorrow = new Date(); tomorrow.setDate(tomorrow.getDate() + 1);
     var max = new Date(); max.setDate(max.getDate() + 90);
@@ -109,5 +109,79 @@
       var ta = f.querySelector('.mf-text');
       (navigator.clipboard ? navigator.clipboard.writeText(ta.value) : Promise.reject()).then(function () { alert('コピーしました'); }, function () { ta.select(); document.execCommand('copy'); alert('コピーしました'); });
     });
+  });
+
+  // ---- 見学・質問のお問い合わせフォーム ----
+  function normTel(v) {
+    return String(v || '').trim().replace(/[０-９]/g, function (c) { return String.fromCharCode(c.charCodeAt(0) - 0xFEE0); })
+      .replace(/[－ー―‐−]/g, '-').replace(/[（）()　\s]/g, '').replace(/^\+81-?/, '0');
+  }
+  function normMail(v) { return String(v || '').trim().replace(/[！-～]/g, function (c) { return String.fromCharCode(c.charCodeAt(0) - 0xFEE0); }); }
+
+  [].forEach.call(document.querySelectorAll('form.inqform'), function (f) {
+    var el = f.elements, err = f.querySelector('.mf-error');
+    var closed = (f.dataset.closed || '').split(',').filter(Boolean).map(Number);
+    var tomorrow = new Date(); tomorrow.setDate(tomorrow.getDate() + 1);
+    el.vd.min = ymd(tomorrow);
+    function kind() { var r = f.querySelector('input[name=kind]:checked'); return r ? r.value : ''; }
+    function sync() {
+      var visit = kind() === '見学したい';
+      f.querySelector('.iq-visit').hidden = !visit;
+      f.querySelector('.iq-msg-req').hidden = visit;
+    }
+    sync();
+    var clearErr = function (e) { if (e.target.classList) e.target.classList.remove('invalid'); if (!f.querySelector('.invalid')) err.hidden = true; sync(); };
+    f.addEventListener('input', clearErr); f.addEventListener('change', clearErr);
+
+    f.addEventListener('submit', function (e) {
+      e.preventDefault();
+      el.tel.value = normTel(el.tel.value); el.email.value = normMail(el.email.value);
+      var msgs = [], bad = [];
+      [].forEach.call(f.querySelectorAll('.invalid'), function (x) { x.classList.remove('invalid'); });
+      if (el.place.tagName === 'SELECT' && !el.place.value) { msgs.push('事業所を選んでください'); bad.push(el.place); }
+      if (!el.name.value.trim()) { msgs.push('お名前を入力してください'); bad.push(el.name); }
+      if (!/^0\d{9,10}$/.test(el.tel.value.replace(/[^0-9]/g, ''))) { msgs.push('電話番号は、携帯電話（例：090-1234-5678）または市外局番からの番号を入力してください'); bad.push(el.tel); }
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(el.email.value)) { msgs.push('メールアドレスを確認してください（例：yame.taro@example.com）'); bad.push(el.email); }
+      var visit = '';
+      if (kind() === '見学したい' && el.vd.value) {
+        var p = el.vd.value.split('-'), day = new Date(+p[0], +p[1] - 1, +p[2]);
+        if (el.vd.value < el.vd.min) { msgs.push('見学の希望日は明日以降を選んでください'); bad.push(el.vd); }
+        else if (closed.indexOf(day.getDay()) >= 0) { msgs.push(WD[day.getDay()] + '曜日はお休みです。別の日を選んでください'); bad.push(el.vd); }
+        visit = fmt(el.vd.value) + (el.vt.value ? ' ' + el.vt.value + '〜' : '');
+      }
+      if (kind() !== '見学したい' && !el.msg.value.trim()) { msgs.push('お問い合わせ内容を入力してください'); bad.push(el.msg); }
+      if (msgs.length) {
+        bad.forEach(function (x) { x.classList.add('invalid'); });
+        err.innerHTML = '入力内容を確認してください：<br>・' + msgs.map(function (m) { return m.replace(/</g, '&lt;'); }).join('<br>・');
+        err.hidden = false; bad[0].focus(); return;
+      }
+      err.hidden = true;
+      var subject = '【お問い合わせ・' + kind() + '】' + el.place.value + '　' + el.name.value.trim() + '様';
+      var body = ['採用ご担当者様', '', '求人サイトからお問い合わせします。', '',
+        '■ 種類：' + kind(), '■ 事業所：' + el.place.value + (el.job.value ? '（' + el.job.value + '）' : ''),
+        '■ お名前：' + el.name.value.trim(), '■ 電話番号：' + el.tel.value, '■ メールアドレス：' + el.email.value,
+        '■ 見学の希望日：' + (visit || 'なし'), '■ お問い合わせ内容：' + (el.msg.value.trim() || 'なし'), '', 'よろしくお願いいたします。'].join('\n');
+      var mailto = 'mailto:' + f.dataset.to + '?subject=' + encodeURIComponent(subject) + '&body=' + encodeURIComponent(body);
+      var fb = f.querySelector('.mf-fallback'); fb.querySelector('.mf-text').value = '宛先：' + f.dataset.to + '\n件名：' + subject + '\n\n' + body;
+      var btn = f.querySelector('button[type=submit]'); btn.disabled = true; btn.textContent = '送信中…';
+      fetch(f.dataset.endpoint, { method: 'POST', body: JSON.stringify({
+        type: 'inquiry', website: el.website.value, kind: kind(), place: el.place.value, job: el.job.value,
+        name: el.name.value.trim(), tel: el.tel.value, email: el.email.value, visit: visit, msg: el.msg.value.trim(), page: location.href
+      }) })
+        .then(function (r) { return r.json(); })
+        .then(function (res) {
+          if (!res || !res.ok) throw new Error('error');
+          [].forEach.call(f.children, function (x) { if (!x.classList.contains('mf-done')) x.style.display = 'none'; });
+          f.querySelector('.mf-done').hidden = false;
+        })
+        .catch(function () {
+          btn.disabled = false; btn.textContent = '問い合わせを送る';
+          err.innerHTML = '送信できませんでした。時間をおいてもう一度お試しいただくか、下の「うまく送信できない場合」から、メールまたはお電話でお問い合わせください。';
+          err.hidden = false; fb.hidden = false; fb.open = true;
+          if (!fb.querySelector('.mf-mailto')) { var a = document.createElement('a'); a.className = 'btn mf-mailto'; a.textContent = 'メールアプリで送る'; a.href = mailto; a.style.marginTop = '8px'; fb.appendChild(a); }
+        });
+    });
+    var copy = f.querySelector('.mf-copy');
+    if (copy) copy.addEventListener('click', function () { var ta = f.querySelector('.mf-text'); ta.select(); try { navigator.clipboard.writeText(ta.value); } catch (x) { document.execCommand('copy'); } alert('コピーしました'); });
   });
 })();

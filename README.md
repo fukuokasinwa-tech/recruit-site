@@ -147,6 +147,13 @@ Claude Code に「このフォルダを GitHub の ＜ユーザー名＞/recruit
    →「デプロイ」→ 表示された「ウェブアプリのURL」（https://script.google.com/macros/s/…/exec）をコピー
 6. そのURLを `data/config.json` の `"formEndpoint"` に入れる（または Claude に送る）
 
+**自動更新（一度設定すれば、以後は手作業なし）：**
+1. https://script.google.com/home/usersettings で「Google Apps Script API」を**オン**
+2. Apps Script の ⚙「プロジェクトの設定」→「"appsscript.json" マニフェスト ファイルをエディタで表示する」にチェック → エディタの `appsscript.json` を、このリポジトリの `gas/appsscript.json` の中身に貼り替えて保存
+3. `Code.gs`（コード.gs）も最新の `gas/Code.gs` に貼り替えて保存
+4. 関数の選択で「setupAutoUpdate」を選んで「▷ 実行」→ 許可
+→ 以後、GitHub の `gas/` が変わると1時間以内に自動で取り込まれ、同じURLのまま公開されます。
+
 ※ 無料のGoogleアカウントでは1日100通まで送信できます。応募者の情報はスプレッドシート（自分のGoogleドライブ）にだけ保存され、求人サイト（GitHub）には保存されません。
 
 ---

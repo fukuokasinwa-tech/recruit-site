@@ -243,17 +243,49 @@
       '</form>';
   }
 
+  // 見学・質問のお問い合わせフォーム（応募とは別。config.inquiry が true の時だけ表示）
+  // places: [{place, job}] … 求人ページでは1件（自動反映）、トップページでは事業所の一覧から選ぶ
+  function inquiryFormHtml(places, config, uid) {
+    if (!config.inquiry || !config.email || !config.formEndpoint) return '';
+    var one = places.length === 1;
+    var placeHtml = one
+      ? '<div class="mf-place">' + esc(places[0].place) + '</div><input type="hidden" name="place" value="' + esc(places[0].place) + '"><input type="hidden" name="job" value="' + esc(places[0].job || '') + '">'
+      : '<select name="place" required><option value="">事業所を選んでください</option><option>どの事業所でもよい・わからない</option>' +
+        places.map(function (p) { return '<option>' + esc(p.place) + '</option>'; }).join('') + '</select><input type="hidden" name="job" value="">';
+    var id = function (n) { return 'iq-' + n + '-' + esc(uid); };
+    return '<details class="inq no-print"' + (one ? '' : ' open') + '><summary>見学・質問のお問い合わせ（応募の前に聞きたいことがある方）</summary>' +
+      '<form class="inqform mailform" novalidate data-endpoint="' + esc(config.formEndpoint) + '" data-to="' + esc(config.email) + '" data-closed="' + esc((config.interview && config.interview.closedDays || [0]).join(',')) + '">' +
+      '<p class="muted">「まず見学したい」「仕事内容や働き方について聞きたい」などのお問い合わせはこちらから。採用担当から、お電話またはメールでお返事します。</p>' +
+      '<div class="mf-hp" aria-hidden="true"><label>ホームページ<input type="text" name="website" tabindex="-1" autocomplete="off"></label></div>' +
+      '<label>お問い合わせの種類<span class="req">必須</span></label>' +
+      '<div class="iq-types"><label><input type="radio" name="kind" value="見学したい" checked> 見学したい</label><label><input type="radio" name="kind" value="質問したい"> 質問したい</label><label><input type="radio" name="kind" value="その他"> その他</label></div>' +
+      '<label>事業所' + (one ? '' : '<span class="req">必須</span>') + '</label>' + placeHtml +
+      '<label for="' + id('name') + '">お名前<span class="req">必須</span></label><input type="text" id="' + id('name') + '" name="name" required autocomplete="name" placeholder="例：八女 太郎">' +
+      '<label for="' + id('tel') + '">電話番号<span class="req">必須</span></label><input type="tel" id="' + id('tel') + '" name="tel" required autocomplete="tel" inputmode="tel" placeholder="例：090-1234-5678">' +
+      '<p class="muted" style="margin:4px 0 0">携帯電話の番号でもOKです。</p>' +
+      '<label for="' + id('mail') + '">メールアドレス<span class="req">必須</span></label><input type="email" id="' + id('mail') + '" name="email" required autocomplete="email" inputmode="email" placeholder="例：yame.taro@example.com">' +
+      '<div class="iq-visit"><label for="' + id('date') + '">見学の希望日（任意）</label>' +
+      '<div class="cand"><span class="cand-label">希望日</span><input type="date" id="' + id('date') + '" name="vd"><select name="vt" aria-label="見学の希望時間"><option value="">時間を選択</option>' +
+      interviewTimes(config).map(function (t) { return '<option value="' + t + '">' + t + '</option>'; }).join('') + '</select></div></div>' +
+      '<label for="' + id('msg') + '">お問い合わせ内容<span class="req iq-msg-req" hidden>必須</span></label><textarea id="' + id('msg') + '" name="msg" rows="4" placeholder="例：見学のときに、仕事の様子を見せていただけますか？"></textarea>' +
+      '<p class="mf-error" role="alert" hidden></p>' +
+      '<button type="submit" class="btn primary">問い合わせを送る</button>' +
+      '<div class="mf-done" role="status" hidden><b>お問い合わせを受け付けました。</b><br>ありがとうございます。ご入力いただいたメールアドレスに受付確認のメールをお送りしました。採用担当から、お電話またはメールでお返事します。<br>※ 確認メールが届かない場合は、迷惑メールフォルダもご確認ください。</div>' +
+      '<details class="mf-fallback" hidden><summary>うまく送信できない場合</summary><p>下の内容をコピーして、<b>' + esc(config.email) + '</b> 宛てにメールで送ってください。</p><textarea readonly rows="8" class="mf-text"></textarea><button type="button" class="btn mf-copy">内容をコピー</button></details>' +
+      '</form></details>';
+  }
+
   function applyHtml(job, office, config) {
     var btns = [];
     if (config.applyFormUrl) btns.push('<a class="btn primary" href="' + esc(config.applyFormUrl) + '" target="_blank" rel="noopener">応募フォームから応募</a>');
     if (config.phone) btns.push('<a class="btn" href="tel:' + esc(String(config.phone).replace(/[^0-9+]/g, '')) + '">電話で応募・問い合わせ<br><small>' + esc(config.phone) + (config.phoneHours ? '（' + esc(config.phoneHours) + '）' : '') + '</small></a>');
     return '<section class="apply no-print"><h2>応募・見学のお申し込み</h2><p>' + (config.contactName ? '採用担当：' + esc(config.contactName) + '　' : '') + '「求人サイトを見た」とお伝えください。見学だけでも歓迎です。' + (config.interview && config.interview.bring ? '<br>面接当日の持ち物：<b>' + esc(config.interview.bring) + '</b>' : '') + '</p><div class="btns">' + btns.join('') + '</div>' +
-      mailFormHtml(job, office, config) + '</section>' +
+      mailFormHtml(job, office, config) + inquiryFormHtml([{ place: office.name + '（' + office.service + '）', job: job.title }], config, job.id) + '</section>' +
       '<section class="apply print-only"><h2>応募・お問い合わせ</h2><p>' + (config.contactName ? '採用担当：' + esc(config.contactName) + '　' : '') + 'TEL ' + esc(config.phone) + (config.phoneHours ? '（' + esc(config.phoneHours) + '）' : '') + (config.email ? '　/　' + esc(config.email) : '') + (config.interview && config.interview.bring ? '<br>面接当日の持ち物：' + esc(config.interview.bring) : '') + '</p></section>';
   }
 
   var api = {
-    esc: esc, nl2br: nl2br, salaryText: salaryText, fullAddress: fullAddress, isExpired: isExpired, mapHtml: mapHtml, mapQuery: mapQuery, officeHomepage: officeHomepage, operatorName: operatorName,
+    esc: esc, nl2br: nl2br, salaryText: salaryText, fullAddress: fullAddress, isExpired: isExpired, mapHtml: mapHtml, mapQuery: mapQuery, officeHomepage: officeHomepage, operatorName: operatorName, inquiryFormHtml: inquiryFormHtml,
     jobPostingJsonLd: jobPostingJsonLd, jobSheetHtml: jobSheetHtml, photosOf: photosOf, photoSrc: photoSrc, absUrl: absUrl,
     EMPLOYMENT_TYPES: EMPLOYMENT_TYPES, SALARY_UNITS: SALARY_UNITS
   };

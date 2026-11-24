@@ -114,6 +114,15 @@ a { color: var(--accent); }
 .mailform .mf-error { color: #a12a1b; background: #fdecea; border-radius: 8px; padding: 10px 12px; font-size: 14px; margin: 12px 0 0; }
 .mailform button.btn { margin-top: 14px; width: 100%; font: inherit; font-weight: 700; cursor: pointer; }
 .mf-fallback { margin-top: 12px; font-size: 14px; }
+.inq { margin-top: 18px; border-top: 1px dashed #b9d6c6; padding-top: 14px; }
+.inq > summary { cursor: pointer; font-weight: 700; color: var(--accent); font-size: 16px; padding: 6px 0; }
+.inq .inqform { border-top: 0; margin-top: 6px; padding-top: 0; }
+.iq-types { display: flex; flex-wrap: wrap; gap: 8px; }
+.iq-types label { display: inline-flex; align-items: center; gap: 6px; margin: 0; font-weight: 400; border: 1px solid #cfcac0; border-radius: 999px; padding: 6px 14px; background: #fff; cursor: pointer; }
+.iq-types input { width: auto; }
+.inquiry-top { background: var(--accent-soft); border-radius: 12px; padding: 20px; margin: 8px 0 40px; }
+.inquiry-top h2 { margin: 0 0 4px; font-size: 20px; }
+.inquiry-top .inq { border-top: 0; margin-top: 0; padding-top: 0; }
 .mf-hp { position: absolute; left: -9999px; width: 1px; height: 1px; overflow: hidden; }
 .mf-done { margin-top: 14px; padding: 14px 16px; border-radius: 10px; background: #fff; border: 2px solid var(--accent); line-height: 1.7; }
 .mf-fallback textarea { font-size: 13px; }

@@ -58,6 +58,23 @@ async function main() {
 const officeLinks = await require('./src/office-links.js').resolve(config, offices);
 for (const o of offices) o._homepage = officeLinks[o.id] ? officeLinks[o.id].url : '';
 
+// 応募受付（Google Apps Script）の版を確認し、新しい版が動いていれば機能を自動でオンにする
+if (config.formEndpoint) {
+  try {
+    const ctrl = new AbortController(); const t = setTimeout(() => ctrl.abort(), 20000);
+    const res = await fetch(config.formEndpoint, { signal: ctrl.signal, redirect: 'follow' });
+    clearTimeout(t);
+    const info = await res.json();
+    config._gasVersion = info.version || '';
+    console.log(`応募受付の版：${config._gasVersion || '（古い版）'}${info.autoUpdate ? '・自動更新オン' : ''}${info.lastUpdate ? '・最終更新 ' + info.lastUpdate : ''}`);
+  } catch (e) { config._gasVersion = ''; console.log('応募受付の版：確認できませんでした'); }
+}
+if (config.inquiry === 'auto') {
+  config.inquiry = !!config._gasVersion && config._gasVersion >= (config.inquiryMinVersion || '');
+  console.log(`見学・質問のお問い合わせフォーム：${config.inquiry ? '表示' : '非表示（応募受付の更新待ち）'}`);
+}
+
+
 // ---- 出力 ----
 fs.rmSync(OUT, { recursive: true, force: true });
 fs.mkdirSync(path.join(OUT, 'jobs'), { recursive: true });
@@ -177,7 +194,9 @@ const indexHtml = layout({
   <p class="count" id="count">${jobs.length}件の求人</p>
   <div class="cards" id="cards">${cards || ''}</div>
   <p class="empty" id="empty" ${jobs.length ? 'hidden' : ''}>現在募集中の求人はありません。お問い合わせはお電話でどうぞ。</p>
+  ${config.inquiry && config.formEndpoint ? `<section class="inquiry-top"><h2>見学・お問い合わせ</h2><p class="muted" style="margin:0 0 8px">見学のご希望や、お仕事についてのご質問はお気軽にどうぞ。お電話（${esc(config.phone)}・${esc(config.phoneHours || '')}）でも受け付けています。</p>${R.inquiryFormHtml(offices.filter(o => !/事業所名/.test(o.name)).map(o => ({ place: o.name + '（' + o.service + '）' })), config, 'top')}</section>` : ''}
 </main>
+<script src="./assets/apply.js?v=${v}" defer></script>
 <script>
 (function () {
   var sel = ['city', 'service', 'emp'].map(function (k) { return [k, document.getElementById('f-' + k)]; });

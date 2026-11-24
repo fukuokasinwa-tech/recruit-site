@@ -10,6 +10,8 @@
  */
 
 // ▼ 応募メールの受け取り先（変更する時はここを書き換えて「デプロイ」→「デプロイを管理」→ 新バージョン）
+// ▼ このプログラムの版（GitHub で更新するたびに変える。公開時のチェックで、どの版が動いているか確認できる）
+const VERSION = '2026-11-24';
 const TO = 'fsg.itoh@fukusokyo.jp';
 const SHEET_NAME = '応募一覧';
 const MAX_PER_HOUR = 30; // いたずら対策：1時間あたりの受付上限
@@ -22,6 +24,9 @@ function doPost(e) {
 
     // いたずら（自動投稿プログラム）対策：見えない欄に入力があれば受け付けたふりをして破棄
     if (d.website) return json_({ ok: true });
+
+    // 見学・質問のお問い合わせ
+    if (d.type === 'inquiry') return inquiry_(d);
 
     const need = ['place', 'job', 'name', 'tel', 'email', 'c1', 'c2', 'c3'];
     for (const k of need) {
@@ -102,9 +107,133 @@ function doPost(e) {
   }
 }
 
+// 見学・質問のお問い合わせ：採用担当へメール（返信で相手に届く）＋相手へ受付確認メール＋「問い合わせ一覧」シートに記録
+function inquiry_(d) {
+  const v = {};
+  ['kind', 'place', 'job', 'name', 'tel', 'email', 'visit', 'page'].forEach(function (k) { v[k] = clip_(d[k], 200); });
+  v.msg = clip_(d.msg, 1500);
+  if (!v.place || !v.name || !v.tel || !v.email) return json_({ ok: false, error: '未入力' });
+  if (!/^0\d{9,10}$/.test(v.tel.replace(/[^0-9]/g, ''))) return json_({ ok: false, error: '電話番号の形式' });
+  v.email = v.email.replace(/＠/g, '@').replace(/\s/g, '');
+  if (!/^[^@]+@[^@]+\.[^@]+$/.test(v.email)) return json_({ ok: false, error: 'メールアドレスの形式' });
+
+  const cache = CacheService.getScriptCache();
+  const n = Number(cache.get('count') || 0);
+  if (n >= MAX_PER_HOUR) return json_({ ok: false, error: '混み合っています' });
+  cache.put('count', String(n + 1), 3600);
+  const key = 'inq:' + v.email.toLowerCase();
+  if (cache.get(key)) return json_({ ok: true });
+  cache.put(key, '1', 600);
+
+  const now = Utilities.formatDate(new Date(), 'Asia/Tokyo', 'yyyy/MM/dd HH:mm');
+  const ss = spreadsheet_();
+  let sh = ss.getSheetByName('問い合わせ一覧');
+  if (!sh) {
+    sh = ss.insertSheet('問い合わせ一覧');
+    sh.appendRow(['受付日時', '種類', '事業所', 'お名前', '電話番号', 'メールアドレス', '見学の希望日', 'お問い合わせ内容', '対応状況']);
+    sh.setFrozenRows(1);
+  }
+  sh.appendRow([now, v.kind, v.place, v.name, "'" + v.tel, v.email, v.visit, v.msg, '未対応']);
+
+  const lines = [
+    '■ 種類：' + (v.kind || '―'),
+    '■ 事業所：' + v.place + (v.job ? '（' + v.job + '）' : ''),
+    '■ お名前：' + v.name,
+    '■ 電話番号：' + v.tel,
+    '■ メールアドレス：' + v.email,
+    '■ 見学の希望日：' + (v.visit || 'なし'),
+    '■ お問い合わせ内容：' + (v.msg || 'なし')
+  ];
+  MailApp.sendEmail({
+    to: TO, name: '福心会 採用サイト', replyTo: v.email,
+    subject: '【お問い合わせ・' + (v.kind || 'その他') + '】' + v.place + '　' + v.name + '様',
+    body: ['求人サイトからお問い合わせがありました。（' + now + ' 受付）', ''].concat(lines).concat([
+      '', '問い合わせ一覧（スプレッドシート）：' + ss.getUrl(), 'ページ：' + v.page, '',
+      '――――――――――', '★ このメールに「返信」すると、お問い合わせの方（' + v.email + '）へそのまま届きます。']).join('\n')
+  });
+  MailApp.sendEmail({
+    to: v.email, name: REPLY_NAME, replyTo: TO,
+    subject: '【福心会】お問い合わせありがとうございます',
+    body: [v.name + ' 様', '', 'このたびは、福心会の求人サイトからお問い合わせいただき、ありがとうございます。',
+      '以下の内容で受け付けました。', ''].concat(lines).concat(['',
+      '内容を確認のうえ、採用担当より、お電話またはメールでお返事いたします。',
+      '数日たっても連絡がない場合は、お手数ですが下記までお問い合わせください。', '',
+      '福心会グループ 採用担当（伊藤）', CONTACT, '',
+      '※ このメールは自動で送信しています。このメールに返信すると、採用担当に届きます。',
+      '※ お心当たりのない場合は、このメールを破棄してください。']).join('\n')
+  });
+  return json_({ ok: true });
+}
+
 // ブラウザでURLを開いた時の確認用
 function doGet() {
-  return json_({ ok: true, message: '応募フォームの受付は動いています' });
+  const p = PropertiesService.getScriptProperties();
+  return json_({ ok: true, message: '応募フォームの受付は動いています', version: VERSION,
+    autoUpdate: !!p.getProperty('AUTO_UPDATE'), lastUpdate: p.getProperty('LAST_UPDATE') || '' });
+}
+
+// ============================================================
+// 自動更新：GitHub の gas/Code.gs と gas/appsscript.json が変わったら、
+// このプロジェクトを書き換えて、同じURLのまま新しい版を公開する（1時間ごと）
+// 初回だけ、エディタで「setupAutoUpdate」を選んで「実行」する
+// ============================================================
+const REPO_RAW = 'https://raw.githubusercontent.com/fukuokasinwa-tech/recruit-site/main/gas/';
+
+function setupAutoUpdate() {
+  ScriptApp.getProjectTriggers().forEach(function (t) {
+    if (t.getHandlerFunction() === 'autoUpdate') ScriptApp.deleteTrigger(t);
+  });
+  ScriptApp.newTrigger('autoUpdate').timeBased().everyHours(1).create();
+  spreadsheet_();
+  PropertiesService.getScriptProperties().setProperty('AUTO_UPDATE', '1');
+  const r = autoUpdate(true);
+  Logger.log('自動更新を設定しました：' + r);
+  return r;
+}
+
+function autoUpdate(force) {
+  force = force === true;
+  const get = function (name) {
+    const res = UrlFetchApp.fetch(REPO_RAW + name + '?t=' + Date.now(), { muteHttpExceptions: true });
+    return res.getResponseCode() === 200 ? res.getContentText() : null;
+  };
+  const code = get('Code.gs'), manifest = get('appsscript.json');
+  if (!code || !manifest || code.indexOf('function doPost') < 0) return 'GitHubから取得できませんでした';
+  try { JSON.parse(manifest); } catch (e) { return 'appsscript.json の形式エラー'; }
+
+  const digest = Utilities.computeDigest(Utilities.DigestAlgorithm.SHA_256, code + '\n' + manifest, Utilities.Charset.UTF_8);
+  const hash = Utilities.base64Encode(digest);
+  const props = PropertiesService.getScriptProperties();
+  if (!force && props.getProperty('CODE_HASH') === hash) return '変更なし';
+
+  const id = ScriptApp.getScriptId();
+  const api = 'https://script.googleapis.com/v1/projects/' + id;
+  const call = function (method, url, body) {
+    const res = UrlFetchApp.fetch(url, {
+      method: method, contentType: 'application/json', muteHttpExceptions: true,
+      headers: { Authorization: 'Bearer ' + ScriptApp.getOAuthToken() },
+      payload: body ? JSON.stringify(body) : undefined
+    });
+    if (res.getResponseCode() >= 300) throw new Error(method + ' ' + url + ' → ' + res.getResponseCode() + ' ' + res.getContentText().slice(0, 300));
+    return JSON.parse(res.getContentText() || '{}');
+  };
+  const stamp = Utilities.formatDate(new Date(), 'Asia/Tokyo', 'yyyy/MM/dd HH:mm');
+  call('put', api + '/content', { files: [
+    { name: 'Code', type: 'SERVER_JS', source: code },
+    { name: 'appsscript', type: 'JSON', source: manifest }
+  ] });
+  const ver = call('post', api + '/versions', { description: '自動更新 ' + stamp }).versionNumber;
+  const deps = (call('get', api + '/deployments').deployments || []).filter(function (d) {
+    return d.deploymentConfig && d.deploymentConfig.versionNumber &&
+      (d.entryPoints || []).some(function (e) { return e.entryPointType === 'WEB_APP'; });
+  });
+  deps.forEach(function (d) {
+    call('put', api + '/deployments/' + d.deploymentId, { deploymentConfig: {
+      scriptId: id, versionNumber: ver, manifestFileName: 'appsscript', description: '自動更新 ' + stamp } });
+  });
+  props.setProperty('CODE_HASH', hash);
+  props.setProperty('LAST_UPDATE', stamp + '（版 ' + ver + '）');
+  return '更新しました：版 ' + ver + '、公開 ' + deps.length + '件';
 }
 
 // 設置後の動作確認用：エディタ上部の関数選択で「testMail」を選んで「実行」
