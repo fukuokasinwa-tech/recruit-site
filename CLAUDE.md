@@ -58,7 +58,8 @@
 - `config.formEndpoint`（Google Apps Script のウェブアプリURL）がある時は「応募する」で**自動送信**（`gas/Code.gs`：採用担当へメール（返信先＝応募者なので「返信」でそのまま応募者に届く）＋応募者へ受付確認メール（返信先＝採用担当）＋スプレッドシートに記録（12列目メールアドレス）、同じアドレスの連続送信は10分間無視、見えない欄でいたずら対策、1時間30件まで）。失敗時はメールアプリ・電話へ誘導。
 - `config.formAutoReply` が true の時だけ、受付完了画面で「確認メールを送りました」と表示する（`gas/Code.gs` の新しい版がデプロイされてから true にする）。
 - `formEndpoint` が無い時は応募者のメールアプリ（mailto）で送信。どちらもサーバー・有料サービスは使わない。
-- **Apps Script は自動更新**：`gas/Code.gs` と `gas/appsscript.json` を GitHub に push すると、Apps Script 側の `autoUpdate`（1時間ごとのトリガー）が取り込み、同じURLのウェブアプリを新バージョンで再公開する。ユーザーの手作業は不要（初回の `setupAutoUpdate` 実行と Apps Script API のオンだけ必要）。
+- **Apps Script の自動更新は使えない**（このスクリプトは Google が自動で用意した既定のクラウドプロジェクトのため、Apps Script API を有効にする権限がない。2026/11/25 確認）。`gas/Code.gs` を変えた時は、ユーザーに「採用 応募一覧」→ 拡張機能 → Apps Script で貼り直し →「デプロイを管理」→ ✏️ →「新バージョン」→「デプロイ」をしてもらう。`setupAutoUpdate`/`autoUpdate` はコードに残っているが使わない（トリガーは削除してもらった）。
+- できるだけ Apps Script を変えずに済むよう、変わりやすい設定（持ち物・面接時間など）はサイト側（`data/config.json`）から送る作りにする。
 - `gas/Code.gs` を変えたら **`VERSION` を必ず更新**する。公開時のチェック（build.js・Actions ログ）に「応募受付の版」として出るので、反映されたか確認できる。
 - 見学・質問のお問い合わせフォーム（`config.inquiry`）：`"auto"` の時は、応募受付の版が `inquiryMinVersion` 以上なら自動で表示。記録先はスプレッドシートの「問い合わせ一覧」シート。
 - 面接の時間帯・休みの曜日・当日の持ち物は `config.interview`（start / end / step / closedDays / note / bring）で設定。持ち物（現在：履歴書）は応募欄・完了画面・印刷用求人票・応募者への確認メールに表示（確認メールへはサイトから送るので、変更時に Apps Script の更新は不要）。
