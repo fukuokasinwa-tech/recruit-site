@@ -23,7 +23,7 @@ jobs:
     runs-on: ubuntu-latest
     environment:
       name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
+      url: ${{ steps.deployment1.outputs.page_url || steps.deployment.outputs.page_url }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -52,5 +52,12 @@ jobs:
       - uses: actions/upload-pages-artifact@v4
         with:
           path: dist
+      - id: deployment1
+        uses: actions/deploy-pages@v4
+        continue-on-error: true
+      - name: 公開に失敗したときは少し待つ（GitHub側の一時的な不具合への対策）
+        if: steps.deployment1.outcome == 'failure'
+        run: sleep 60
       - id: deployment
+        if: steps.deployment1.outcome == 'failure'
         uses: actions/deploy-pages@v4
