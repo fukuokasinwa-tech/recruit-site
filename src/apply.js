@@ -122,7 +122,7 @@
     var el = f.elements, err = f.querySelector('.mf-error');
     var closed = (f.dataset.closed || '').split(',').filter(Boolean).map(Number);
     var tomorrow = new Date(); tomorrow.setDate(tomorrow.getDate() + 1);
-    el.vd.min = ymd(tomorrow);
+    [1, 2, 3].forEach(function (n) { el['vd' + n].min = ymd(tomorrow); });
     function kind() { var r = f.querySelector('input[name=kind]:checked'); return r ? r.value : ''; }
     function sync() {
       var visit = kind() === '見学したい';
@@ -142,12 +142,23 @@
       if (!el.name.value.trim()) { msgs.push('お名前を入力してください'); bad.push(el.name); }
       if (!/^0\d{9,10}$/.test(el.tel.value.replace(/[^0-9]/g, ''))) { msgs.push('電話番号は、携帯電話（例：090-1234-5678）または市外局番からの番号を入力してください'); bad.push(el.tel); }
       if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(el.email.value)) { msgs.push('メールアドレスを確認してください（例：yame.taro@example.com）'); bad.push(el.email); }
-      var visit = '';
-      if (kind() === '見学したい' && el.vd.value) {
-        var p = el.vd.value.split('-'), day = new Date(+p[0], +p[1] - 1, +p[2]);
-        if (el.vd.value < el.vd.min) { msgs.push('見学の希望日は明日以降を選んでください'); bad.push(el.vd); }
-        else if (closed.indexOf(day.getDay()) >= 0) { msgs.push(WD[day.getDay()] + '曜日はお休みです。別の日を選んでください'); bad.push(el.vd); }
-        visit = fmt(el.vd.value) + (el.vt.value ? ' ' + el.vt.value + '〜' : '');
+      var visit = '', seenV = {}, vlist = [];
+      if (kind() === '見学したい') {
+        [1, 2, 3].forEach(function (n) {
+          var d = el['vd' + n], t = el['vt' + n];
+          if (n === 1 && !d.value) { msgs.push('見学の第1希望の日付を選んでください'); bad.push(d); }
+          if (n === 1 && !t.value) { msgs.push('見学の第1希望の時間を選んでください'); bad.push(t); }
+          if (!d.value) { if (n > 1 && t.value) { msgs.push('見学の第' + n + '希望の日付を選んでください'); bad.push(d); } return; }
+          if (n > 1 && !t.value) { msgs.push('見学の第' + n + '希望の時間を選んでください'); bad.push(t); }
+          var p = d.value.split('-'), day = new Date(+p[0], +p[1] - 1, +p[2]);
+          if (d.value < d.min) { msgs.push('見学の第' + n + '希望は明日以降を選んでください'); bad.push(d); }
+          else if (closed.indexOf(day.getDay()) >= 0) { msgs.push('見学の第' + n + '希望：' + WD[day.getDay()] + '曜日はお休みです。別の日を選んでください'); bad.push(d); }
+          var k = d.value + ' ' + t.value;
+          if (t.value && seenV[k]) { msgs.push('見学の第' + n + '希望が第' + seenV[k] + '希望と同じ日時です'); bad.push(d, t); }
+          seenV[k] = n;
+          vlist.push('第' + n + '希望 ' + fmt(d.value) + (t.value ? ' ' + t.value + '〜' : ''));
+        });
+        visit = vlist.join(' ／ ');
       }
       if (kind() !== '見学したい' && !el.msg.value.trim()) { msgs.push('お問い合わせ内容を入力してください'); bad.push(el.msg); }
       if (msgs.length) {
@@ -160,7 +171,7 @@
       var body = ['採用ご担当者様', '', '求人サイトからお問い合わせします。', '',
         '■ 種類：' + kind(), '■ 事業所：' + el.place.value + (el.job.value ? '（' + el.job.value + '）' : ''),
         '■ お名前：' + el.name.value.trim(), '■ 電話番号：' + el.tel.value, '■ メールアドレス：' + el.email.value,
-        '■ 見学の希望日：' + (visit || 'なし'), '■ お問い合わせ内容：' + (el.msg.value.trim() || 'なし'), '', 'よろしくお願いいたします。'].join('\n');
+        '■ 見学の希望日時：' + (visit || 'なし'), '■ お問い合わせ内容：' + (el.msg.value.trim() || 'なし'), '', 'よろしくお願いいたします。'].join('\n');
       var mailto = 'mailto:' + f.dataset.to + '?subject=' + encodeURIComponent(subject) + '&body=' + encodeURIComponent(body);
       var fb = f.querySelector('.mf-fallback'); fb.querySelector('.mf-text').value = '宛先：' + f.dataset.to + '\n件名：' + subject + '\n\n' + body;
       var btn = f.querySelector('button[type=submit]'); btn.disabled = true; btn.textContent = '送信中…';

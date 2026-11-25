@@ -264,9 +264,10 @@
       '<label for="' + id('tel') + '">電話番号<span class="req">必須</span></label><input type="tel" id="' + id('tel') + '" name="tel" required autocomplete="tel" inputmode="tel" placeholder="例：090-1234-5678">' +
       '<p class="muted" style="margin:4px 0 0">携帯電話の番号でもOKです。</p>' +
       '<label for="' + id('mail') + '">メールアドレス<span class="req">必須</span></label><input type="email" id="' + id('mail') + '" name="email" required autocomplete="email" inputmode="email" placeholder="例：yame.taro@example.com">' +
-      '<div class="iq-visit"><label for="' + id('date') + '">見学の希望日（任意）</label>' +
-      '<div class="cand"><span class="cand-label">希望日</span><input type="date" id="' + id('date') + '" name="vd"><select name="vt" aria-label="見学の希望時間"><option value="">時間を選択</option>' +
-      interviewTimes(config).map(function (t) { return '<option value="' + t + '">' + t + '</option>'; }).join('') + '</select></div></div>' +
+      '<div class="iq-visit"><label>見学の希望日時（3つまで選べます）<span class="req">第1希望は必須</span></label>' +
+      [1, 2, 3].map(function (n) { return '<div class="cand"><span class="cand-label">第' + n + '希望' + (n === 1 ? '' : '（任意）') + '</span>' +
+        '<input type="date" name="vd' + n + '" aria-label="見学 第' + n + '希望の日付"><select name="vt' + n + '" aria-label="見学 第' + n + '希望の時間"><option value="">時間を選択</option>' + interviewTimes(config).map(function (t) { return '<option value="' + t + '">' + t + '</option>'; }).join('') + '</select></div>'; }).join('') +
+      '</div>' +
       '<label for="' + id('msg') + '">お問い合わせ内容<span class="req iq-msg-req" hidden>必須</span></label><textarea id="' + id('msg') + '" name="msg" rows="4" placeholder="例：見学のときに、仕事の様子を見せていただけますか？"></textarea>' +
       '<p class="mf-error" role="alert" hidden></p>' +
       '<button type="submit" class="btn primary">問い合わせを送る</button>' +

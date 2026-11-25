@@ -61,7 +61,7 @@
 - **Apps Script の自動更新は使えない**（このスクリプトは Google が自動で用意した既定のクラウドプロジェクトのため、Apps Script API を有効にする権限がない。2026/11/25 確認）。`gas/Code.gs` を変えた時は、ユーザーに「採用 応募一覧」→ 拡張機能 → Apps Script で貼り直し →「デプロイを管理」→ ✏️ →「新バージョン」→「デプロイ」をしてもらう。`setupAutoUpdate`/`autoUpdate` はコードに残っているが使わない（トリガーは削除してもらった）。
 - できるだけ Apps Script を変えずに済むよう、変わりやすい設定（持ち物・面接時間など）はサイト側（`data/config.json`）から送る作りにする。
 - `gas/Code.gs` を変えたら **`VERSION` を必ず更新**する。公開時のチェック（build.js・Actions ログ）に「応募受付の版」として出るので、反映されたか確認できる。
-- 見学・質問のお問い合わせフォーム（`config.inquiry`）：`"auto"` の時は、応募受付の版が `inquiryMinVersion` 以上なら自動で表示。記録先はスプレッドシートの「問い合わせ一覧」シート。
+- 見学・質問のお問い合わせフォーム（`config.inquiry`）：`"auto"` の時は、応募受付の版が `inquiryMinVersion` 以上なら自動で表示。記録先はスプレッドシートの「問い合わせ一覧」シート。見学の希望日時は第1〜第3希望（第1は必須）で、1つの文字列にまとめて送る（Apps Script の変更不要）。
 - 面接の時間帯・休みの曜日・当日の持ち物は `config.interview`（start / end / step / closedDays / note / bring）で設定。持ち物（現在：履歴書）は応募欄・完了画面・印刷用求人票・応募者への確認メールに表示（確認メールへはサイトから送るので、変更時に Apps Script の更新は不要）。
 
 ## 連絡先（data/config.json）
